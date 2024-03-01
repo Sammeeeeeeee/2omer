@@ -1,14 +1,15 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit, QMessageBox
 from PyQt5.QtCore import QTimer
-
+import winsound
 
 class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
         # Initialize the application window
-        self.setWindowTitle("20-20-20 Timer")
-        self.setGeometry(100, 100, 300, 150)
+        self.setWindowTitle("2omer - 20:00")  # Change the window title here
+        self.setGeometry(100, 100, 400, 150)
+        self.setFixedSize(400, 200)  # Lock the size
 
         # Default focus time: 20 minutes, default break time: 20 seconds
         self.focus_time = 20 * 60
@@ -27,7 +28,7 @@ class TimerApp(QWidget):
         layout = QVBoxLayout()  # Create a vertical layout for organizing widgets
 
         # Display the timer label
-        self.timer_label = QLabel("Focus Period: 20:00", self)
+        self.timer_label = QLabel("Focus Period: <b>20:00</b>", self)  # Bold formatting for initial time
         layout.addWidget(self.timer_label)
 
         # Button for starting the timer
@@ -65,7 +66,8 @@ class TimerApp(QWidget):
         self.timer.stop()
         self.time_left = self.focus_time
         self.is_focus_period = True
-        self.timer_label.setText(f"Focus Period: {self.format_time(self.focus_time)}")
+        self.update_timer_display()
+        self.setWindowTitle("2omer - 20:00")  # Reset window title
         self.start_button.setEnabled(True)
 
     def update_timer(self):
@@ -80,9 +82,16 @@ class TimerApp(QWidget):
                 self.time_left = self.focus_time
             else:
                 self.time_left = self.break_time
+            self.setWindowTitle("2omer - 20:00")  # Reset window title
             self.timer.start(1000)
         else:
-            self.timer_label.setText(f"{'Focus' if self.is_focus_period else 'Break'} Period: {self.format_time(self.time_left)}")
+            self.update_timer_display()
+            self.setWindowTitle(f"2omer - {self.format_time(self.time_left)}")  # Update window title
+
+    def update_timer_display(self):
+        # Update the timer label text with the current time left, bolding the time left part
+        minutes, seconds = divmod(self.time_left, 60)
+        self.timer_label.setText(f"Focus Period: <b>{minutes:02}:{seconds:02}</b>")
 
     def set_custom_times(self):
         # Set custom focus and break times if valid inputs are provided
@@ -99,17 +108,21 @@ class TimerApp(QWidget):
         self.is_focus_period = not self.is_focus_period
         self.time_left = self.focus_time if self.is_focus_period else self.break_time
 
-    def format_time(self, seconds):
-        # Format time from seconds to "mm:ss" format
-        minutes, seconds = divmod(seconds, 60)
-        return f"{minutes:02}:{seconds:02}"
-
     def show_notification(self):
+
+        # Play MB_ICONASTERISK sound
+        winsound.MessageBeep(winsound.MB_ICONASTERISK)
+
         # Show a notification indicating the end of a focus or break period
         msg_box = QMessageBox()
         msg_box.setWindowTitle("Timer Alert")
         msg_box.setText(f"It's time for a {'break' if self.is_focus_period else 'focus period'}")
         msg_box.exec_()
+        
+    def format_time(self, seconds):
+        # Format time from seconds to "mm:ss" format
+        minutes, seconds = divmod(seconds, 60)
+        return f"{minutes:02}:{seconds:02}"
 
 
 if __name__ == "__main__":
