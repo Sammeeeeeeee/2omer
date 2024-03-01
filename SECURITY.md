@@ -5,7 +5,7 @@
 
 ## Vulnerablaties
 
-This is a very simple program, it cannot do much damage. However, as it is a simple python script, if you run a modified version it can cause damage. No responsibilty taken, and please ensue to verifiy the hash.
+This is a very simple program, it cannot do much damage. However, as it is a simple python script, if you run a modified version it can cause damage. **No responsibilty taken**, and please ensure to verifiy the hash.
 
 ## Supported Versions
 
