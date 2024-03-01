@@ -1,23 +1,27 @@
-# Security Policy - 
+# Security Policy -
 
 > This is valid as V1.0.0
-> I will not edit the policy for minor releases, but i will verify it runs safely.
+> 
+> I will not edit the policy for minor releases, but I will verify it runs safely.
 
-## Vulnerablaties
+## Vulnerabilities
 
-This is a very simple program, it cannot do much damage. However, as it is a simple python script, if you run a modified version it can cause damage. **No responsibilty taken**, and please ensure to verifiy the hash.
+This is a very simple program, it cannot do much damage. However, as it is a simple Python script, if you run a modified version, it can cause damage. **No responsibility taken**, and please ensure to verify the hash.
 
 ## Supported Versions
 
-These versions have been tested safe to run on current W11 verisons in a sandbox. 
+These versions have been tested safe to run on current Windows 11 versions in a sandbox. 
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.x.x   | :white_check_mark: |
+| 1.3.x   | :x: |
+| 1.2.x   | :white_check_mark: |
+| 1.1.x   | :white_check_mark: |
+| 1.0.x   | :white_check_mark: |
 | 0.x.x   | :x:                |
 
-## Basic properties
-  ```
+## Basic Properties
+```
 MD5
 23c98ad2da70736a9eacc12074ede613 
 SHA-1
@@ -52,13 +56,16 @@ DetectItEasy
 PE64   Packer: PyInstaller   Compiler: Microsoft Visual C/C++ (19.36.32826) [C]   Linker: Microsoft Linker (14.36.32826)   Tool: Visual Studio (2022 version 17.6) 
 File size
 35.53 MB (37254845 bytes)
-  ```
-## Virustotal score
+```
+## VirusTotal Score
 
-https://www.virustotal.com/gui/file/1587066a16777214727a0f246d2630820777135c8b929e2dfd06c49072fd94c0/behavior
+[Virustotal Score Link](https://www.virustotal.com/gui/file/1587066a16777214727a0f246d2630820777135c8b929e2dfd06c49072fd94c0/behavior)
 
-There are 5 false reports. I belive its due to using QtPy5.
+There are 5 false reports. I believe it's due to using QtPy5.
 
 ## Reporting a Vulnerability
 
-To report a vunrabiltiy, please open an issue. 
+To report a vulnerability, please open an issue. 
+
+--- 
+I TAKE NO RESPONSIBILITY!!! 
