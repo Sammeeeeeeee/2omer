@@ -1,85 +1,97 @@
-import tkinter as tk
-from tkinter import messagebox
-import time
+import sys
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QMessageBox
+from PyQt5.QtCore import QTimer, Qt
 
-class TimerApp:
-    def __init__(self, master):
-        self.master = master
-        self.master.title("20-20-20 Timer")
-        self.master.geometry("300x200")
-        self.master.resizable(False, False)
-        
+class TimerApp(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("20-20-20 Timer")
+        self.setGeometry(100, 100, 300, 200)
+
         self.focus_period = 20 * 60  # Default focus period: 20 minutes
         self.break_period = 20  # Default break period: 20 seconds
-        self.time_interval = 1  # Timer update interval: 1 second
-        
+
+        self.timer_label = QLabel()
+        self.timer_label.setAlignment(Qt.AlignCenter)
+        self.timer_label.setStyleSheet("font-size: 24pt;")
+        self.update_timer()
+
+        self.start_button = QPushButton("Start")
+        self.start_button.clicked.connect(self.start_timer)
+
+        self.pause_button = QPushButton("Pause")
+        self.pause_button.clicked.connect(self.pause_timer)
+        self.pause_button.setEnabled(False)
+
+        self.reset_button = QPushButton("Reset")
+        self.reset_button.clicked.connect(self.reset_timer)
+        self.reset_button.setEnabled(False)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.timer_label)
+        layout.addWidget(self.start_button)
+        layout.addWidget(self.pause_button)
+        layout.addWidget(self.reset_button)
+        self.setLayout(layout)
+
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.update_timer)
+
         self.is_break_time = False
         self.is_running = False
-        
-        self.timer_label = tk.Label(master, text="", font=("Arial", 24))
-        self.timer_label.pack(pady=10)
-        
-        self.start_button = tk.Button(master, text="Start", command=self.start_timer)
-        self.start_button.pack(side=tk.LEFT, padx=10)
-        
-        self.pause_button = tk.Button(master, text="Pause", command=self.pause_timer, state=tk.DISABLED)
-        self.pause_button.pack(side=tk.LEFT, padx=10)
-        
-        self.reset_button = tk.Button(master, text="Reset", command=self.reset_timer, state=tk.DISABLED)
-        self.reset_button.pack(side=tk.LEFT, padx=10)
-        
-        self.update_timer()
-        
+
     def start_timer(self):
         if not self.is_running:
             self.is_running = True
-            self.start_button.config(state=tk.DISABLED)
-            self.pause_button.config(state=tk.NORMAL)
-            self.reset_button.config(state=tk.NORMAL)
+            self.start_button.setEnabled(False)
+            self.pause_button.setEnabled(True)
+            self.reset_button.setEnabled(True)
             self.run_timer()
-        
+
     def pause_timer(self):
         self.is_running = False
-        self.start_button.config(state=tk.NORMAL)
-        self.pause_button.config(state=tk.DISABLED)
-        self.reset_button.config(state=tk.NORMAL)
-        
+        self.start_button.setEnabled(True)
+        self.pause_button.setEnabled(False)
+
     def reset_timer(self):
         self.is_running = False
-        self.start_button.config(state=tk.NORMAL)
-        self.pause_button.config(state=tk.DISABLED)
-        self.reset_button.config(state=tk.DISABLED)
+        self.start_button.setEnabled(True)
+        self.pause_button.setEnabled(False)
+        self.reset_button.setEnabled(False)
         self.is_break_time = False
         self.update_timer()
-        
+
     def run_timer(self):
-        if self.is_running:
-            self.start_time = time.time()
-            self.update_timer()
+        start_time = self.focus_period if not self.is_break_time else self.break_period
+        self.timer.start(1000)
+        while start_time > 0:
+            if not self.is_running:
+                break
+            start_time -= 1
+            if start_time == 0:
+                if not self.is_break_time:
+                    QMessageBox.information(self, "Focus Period Over", "Take a break now!")
+                    self.is_break_time = True
+                else:
+                    QMessageBox.information(self, "Break Over", "Focus time starts now!")
+                    self.is_break_time = False
+                self.update_timer()
+            self.update_timer(start_time)
+            self.timer.start(1000)
 
-    def update_timer(self):
-        elapsed_time = time.time() - self.start_time
-        remaining_time = self.focus_period - elapsed_time if not self.is_break_time else self.break_period - elapsed_time
-
-        if remaining_time <= 0:
-            if not self.is_break_time:
-                messagebox.showinfo("Focus Period Over", "Take a break now!")
-                self.is_break_time = True
-            else:
-                messagebox.showinfo("Break Over", "Focus time starts now!")
-                self.is_break_time = False
-            self.update_timer()
-        else:
-            minutes = int(remaining_time / 60)
-            seconds = int(remaining_time % 60)
-            timer_text = f"{minutes:02d}:{seconds:02d}"
-            self.timer_label.config(text=timer_text)
-            self.master.after(1000, self.update_timer)  # Schedule the update after 1 second (1000 milliseconds)
+    def update_timer(self, remaining_time=None):
+        if remaining_time is None:
+            remaining_time = self.focus_period if not self.is_break_time else self.break_period
+        minutes = remaining_time // 60
+        seconds = remaining_time % 60
+        timer_text = f"{minutes:02d}:{seconds:02d}"
+        self.timer_label.setText(timer_text)
 
 def main():
-    root = tk.Tk()
-    app = TimerApp(root)
-    root.mainloop()
+    app = QApplication(sys.argv)
+    timer_app = TimerApp()
+    timer_app.show()
+    sys.exit(app.exec_())
 
 if __name__ == "__main__":
     main()
