@@ -1,7 +1,9 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit, QMessageBox, QSystemTrayIcon, QMenu
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QIcon
 import winsound
+import os
 
 class TimerApp(QWidget):
     def __init__(self):
@@ -60,8 +62,15 @@ class TimerApp(QWidget):
 
     def add_system_tray_icon(self):
         self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(self.style().standardIcon(QApplication.desktop().style().SP_ComputerIcon))
-
+        
+        # Get the directory of the current script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # Construct the path to the icon file relative to the script's directory
+        icon_path = os.path.join(script_dir, "clock.png")
+        
+        self.tray_icon.setIcon(QIcon(icon_path))  # Set the icon using QIcon with the constructed path to clock.png
+        
         # Create a menu for the system tray icon
         tray_menu = QMenu(self)
         exit_action = tray_menu.addAction("Exit")
@@ -74,6 +83,10 @@ class TimerApp(QWidget):
         self.update_tooltip()
 
         self.tray_icon.show()
+        
+        # Set the window icon
+        app_icon = QIcon(icon_path)
+        self.setWindowIcon(app_icon)
 
     def start_timer(self):
         # Start the timer if it's not already active and set custom times if provided
