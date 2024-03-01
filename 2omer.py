@@ -64,20 +64,7 @@ class TimerApp(QWidget):
     def run_timer(self):
         start_time = self.focus_period if not self.is_break_time else self.break_period
         self.timer.start(1000)
-        while start_time > 0:
-            if not self.is_running:
-                break
-            start_time -= 1
-            if start_time == 0:
-                if not self.is_break_time:
-                    QMessageBox.information(self, "Focus Period Over", "Take a break now!")
-                    self.is_break_time = True
-                else:
-                    QMessageBox.information(self, "Break Over", "Focus time starts now!")
-                    self.is_break_time = False
-                self.update_timer()
-            self.update_timer(start_time)
-            self.timer.start(1000)
+        self.timer.timeout.connect(lambda: self.update_timer(start_time))
 
     def update_timer(self, remaining_time=None):
         if remaining_time is None:
@@ -86,6 +73,15 @@ class TimerApp(QWidget):
         seconds = remaining_time % 60
         timer_text = f"{minutes:02d}:{seconds:02d}"
         self.timer_label.setText(timer_text)
+        remaining_time -= 1
+        if remaining_time < 0:
+            if not self.is_break_time:
+                QMessageBox.information(self, "Focus Period Over", "Take a break now!")
+                self.is_break_time = True
+            else:
+                QMessageBox.information(self, "Break Over", "Focus time starts now!")
+                self.is_break_time = False
+            self.update_timer()
 
 def main():
     app = QApplication(sys.argv)
