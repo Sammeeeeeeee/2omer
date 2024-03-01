@@ -1,9 +1,9 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit, QMessageBox, QSystemTrayIcon, QMenu
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit, QSystemTrayIcon, QMenu, QMessageBox
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QIcon
-import winsound
 import os
+from plyer import notification
 
 class TimerApp(QWidget):
     def __init__(self):
@@ -143,14 +143,14 @@ class TimerApp(QWidget):
         self.time_left = self.focus_time if self.is_focus_period else self.break_time
 
     def show_notification(self):
-        # Play MB_ICONASTERISK sound
-        winsound.MessageBeep(winsound.MB_ICONASTERISK)
-
         # Show a notification indicating the end of a focus or break period
-        msg_box = QMessageBox()
-        msg_box.setWindowTitle("Timer Alert")
-        msg_box.setText(f"It's time for a {'break' if self.is_focus_period else 'focus period'}")
-        msg_box.exec_()
+        notification_title = "Timer Alert"
+        notification_text = f"It's time for a {'break' if self.is_focus_period else 'focus period'}"
+        notification.notify(
+            title=notification_title,
+            message=notification_text,
+            app_name="2omer"
+        )
         
     def format_time(self, seconds):
         # Format time from seconds to "mm:ss" format
