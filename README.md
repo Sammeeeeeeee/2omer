@@ -49,3 +49,6 @@ Find the latest relase [here](https://github.com/Sammeeeeeeee/2omer/releases "Re
 - You can pause the timer at any time by clicking the "Reset" button.
 - When a focus or break period ends, a notification alert will pop up, and the timer will automatically switch to the next period.
 
+## Credit
+
+<a href="https://www.flaticon.com/free-icons/clock" title="clock icons">Clock icons created by CreativeCons - Flaticon</a>
