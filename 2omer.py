@@ -1,6 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit, QMessageBox
-from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit, QMessageBox, QSystemTrayIcon, QMenu
+from PyQt5.QtCore import QTimer, Qt
 import winsound
 
 class TimerApp(QWidget):
@@ -20,6 +20,7 @@ class TimerApp(QWidget):
         # Initialize QTimer for updating the timer
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_timer)
+        self.timer.timeout.connect(self.update_tooltip)  # Connect the update_tooltip method to timer's timeout signal
 
         # Setup the user interface
         self.setup_ui()
@@ -53,6 +54,26 @@ class TimerApp(QWidget):
 
         # Set the layout for the widget
         self.setLayout(layout)
+
+        # Add system tray icon
+        self.add_system_tray_icon()
+
+    def add_system_tray_icon(self):
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(self.style().standardIcon(QApplication.desktop().style().SP_ComputerIcon))
+
+        # Create a menu for the system tray icon
+        tray_menu = QMenu(self)
+        exit_action = tray_menu.addAction("Exit")
+        exit_action.triggered.connect(self.close)
+
+        # Set the menu for the system tray icon
+        self.tray_icon.setContextMenu(tray_menu)
+        
+        # Show remaining time as tooltip when hovering over the tray icon
+        self.update_tooltip()
+
+        self.tray_icon.show()
 
     def start_timer(self):
         # Start the timer if it's not already active and set custom times if provided
@@ -109,7 +130,6 @@ class TimerApp(QWidget):
         self.time_left = self.focus_time if self.is_focus_period else self.break_time
 
     def show_notification(self):
-
         # Play MB_ICONASTERISK sound
         winsound.MessageBeep(winsound.MB_ICONASTERISK)
 
@@ -123,6 +143,10 @@ class TimerApp(QWidget):
         # Format time from seconds to "mm:ss" format
         minutes, seconds = divmod(seconds, 60)
         return f"{minutes:02}:{seconds:02}"
+    
+    def update_tooltip(self):
+        # Update the tooltip text with the current time left
+        self.tray_icon.setToolTip(self.format_time(self.time_left))
 
 
 if __name__ == "__main__":
