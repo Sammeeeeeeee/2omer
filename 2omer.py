@@ -1,6 +1,6 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QMessageBox
-from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QLineEdit, QMessageBox
+from PyQt5.QtCore import QTimer
 
 
 class TimerApp(QWidget):
@@ -63,7 +63,11 @@ class TimerApp(QWidget):
             self.timer.stop()
             self.show_notification()
             self.switch_period()
-            self.reset_timer()
+            if self.is_focus_period:
+                self.time_left = self.focus_time
+            else:
+                self.time_left = self.break_time
+            self.timer.start(1000)
         else:
             self.timer_label.setText(f"{'Focus' if self.is_focus_period else 'Break'} Period: {self.format_time(self.time_left)}")
 
@@ -87,7 +91,7 @@ class TimerApp(QWidget):
     def show_notification(self):
         msg_box = QMessageBox()
         msg_box.setWindowTitle("Timer Alert")
-        msg_box.setText(f"It's time for a {'focus' if self.is_focus_period else 'break'}!")
+        msg_box.setText(f"It's time for a {'break' if self.is_focus_period else 'focus period'}!")
         msg_box.exec_()
 
 
@@ -95,4 +99,5 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     timer_app = TimerApp()
     timer_app.show()
+    timer_app.start_timer()  # Start the timer automatically
     sys.exit(app.exec_())
