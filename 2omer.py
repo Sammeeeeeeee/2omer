@@ -53,31 +53,28 @@ class TimerApp:
         self.update_timer()
         
     def run_timer(self):
-        start_time = time.time()
-        while self.is_running:
-            elapsed_time = time.time() - start_time
-            remaining_time = self.focus_period - elapsed_time if not self.is_break_time else self.break_period - elapsed_time
-            
-            if remaining_time <= 0:
-                if not self.is_break_time:
-                    messagebox.showinfo("Focus Period Over", "Take a break now!")
-                    self.is_break_time = True
-                else:
-                    messagebox.showinfo("Break Over", "Focus time starts now!")
-                    self.is_break_time = False
-                self.update_timer()
-                break
-            
-            self.update_timer(remaining_time)
-            time.sleep(self.time_interval)
-        
-    def update_timer(self, remaining_time=None):
-        if remaining_time is None:
-            remaining_time = self.focus_period if not self.is_break_time else self.break_period
-        minutes = int(remaining_time / 60)
-        seconds = int(remaining_time % 60)
-        timer_text = f"{minutes:02d}:{seconds:02d}"
-        self.timer_label.config(text=timer_text)
+        if self.is_running:
+            self.start_time = time.time()
+            self.update_timer()
+
+    def update_timer(self):
+        elapsed_time = time.time() - self.start_time
+        remaining_time = self.focus_period - elapsed_time if not self.is_break_time else self.break_period - elapsed_time
+
+        if remaining_time <= 0:
+            if not self.is_break_time:
+                messagebox.showinfo("Focus Period Over", "Take a break now!")
+                self.is_break_time = True
+            else:
+                messagebox.showinfo("Break Over", "Focus time starts now!")
+                self.is_break_time = False
+            self.update_timer()
+        else:
+            minutes = int(remaining_time / 60)
+            seconds = int(remaining_time % 60)
+            timer_text = f"{minutes:02d}:{seconds:02d}"
+            self.timer_label.config(text=timer_text)
+            self.master.after(1000, self.update_timer)  # Schedule the update after 1 second (1000 milliseconds)
 
 def main():
     root = tk.Tk()
