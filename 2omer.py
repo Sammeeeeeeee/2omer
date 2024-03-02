@@ -12,10 +12,16 @@ class TimerApp(QWidget):
         self.setGeometry(100, 100, 400, 200)
         self.setFixedSize(400, 200)
 
-        self.focus_minutes = 20
-        self.focus_seconds = 0
-        self.break_minutes = 0
-        self.break_seconds = 20
+        self.default_focus_minutes = 20
+        self.default_focus_seconds = 0
+        self.default_break_minutes = 0
+        self.default_break_seconds = 20
+
+        self.focus_minutes = self.default_focus_minutes
+        self.focus_seconds = self.default_focus_seconds
+        self.break_minutes = self.default_break_minutes
+        self.break_seconds = self.default_break_seconds
+
         self.time_left = self.focus_minutes * 60 + self.focus_seconds
         self.is_focus_period = True
 
@@ -27,7 +33,14 @@ class TimerApp(QWidget):
 
     def setup_ui(self):
         layout = QVBoxLayout()
+        self.setup_period_display(layout)
+        self.setup_time_input(layout)
+        self.setup_buttons(layout)
 
+        self.setLayout(layout)
+        self.add_system_tray_icon()
+
+    def setup_period_display(self, layout):
         period_layout = QHBoxLayout()
         self.period_label = QLabel()
         period_layout.addWidget(self.period_label)
@@ -35,34 +48,21 @@ class TimerApp(QWidget):
         period_layout.addWidget(self.timer_label)
         layout.addLayout(period_layout)
 
+    def setup_time_input(self, layout):
         grid_layout = QGridLayout()
         grid_layout.addWidget(QLabel("Focus Period:"), 2, 0)
-        self.focus_minutes_spinbox = QSpinBox(self)
-        self.focus_minutes_spinbox.setSuffix(" minutes")
-        self.focus_minutes_spinbox.setValue(self.focus_minutes)
-        self.focus_minutes_spinbox.valueChanged.connect(self.validate_input)
+        self.focus_minutes_spinbox = self.create_spinbox(self.focus_minutes, " minutes", 0, 59)
         grid_layout.addWidget(self.focus_minutes_spinbox, 2, 1)
-        self.focus_seconds_spinbox = QSpinBox(self)
-        self.focus_seconds_spinbox.setSuffix(" seconds")
-        self.focus_seconds_spinbox.setRange(0, 59)
-        self.focus_seconds_spinbox.setValue(self.focus_seconds)
-        self.focus_seconds_spinbox.valueChanged.connect(self.validate_input)
+        self.focus_seconds_spinbox = self.create_spinbox(self.focus_seconds, " seconds", 0, 59)
         grid_layout.addWidget(self.focus_seconds_spinbox, 2, 2)
         grid_layout.addWidget(QLabel("Break Period:"), 3, 0)
-        self.break_minutes_spinbox = QSpinBox(self)
-        self.break_minutes_spinbox.setSuffix(" minutes")
-        self.break_minutes_spinbox.setRange(0, 59)
-        self.break_minutes_spinbox.setValue(self.break_minutes)
-        self.break_minutes_spinbox.valueChanged.connect(self.validate_input)
+        self.break_minutes_spinbox = self.create_spinbox(self.break_minutes, " minutes", 0, 59)
         grid_layout.addWidget(self.break_minutes_spinbox, 3, 1)
-        self.break_seconds_spinbox = QSpinBox(self)
-        self.break_seconds_spinbox.setSuffix(" seconds")
-        self.break_seconds_spinbox.setRange(0, 59)
-        self.break_seconds_spinbox.setValue(self.break_seconds)
-        self.break_seconds_spinbox.valueChanged.connect(self.validate_input)
+        self.break_seconds_spinbox = self.create_spinbox(self.break_seconds, " seconds", 0, 59)
         grid_layout.addWidget(self.break_seconds_spinbox, 3, 2)
         layout.addLayout(grid_layout)
 
+    def setup_buttons(self, layout):
         self.start_button = QPushButton("Start", self)
         self.start_button.clicked.connect(self.start_timer)
         layout.addWidget(self.start_button)
@@ -71,14 +71,22 @@ class TimerApp(QWidget):
         self.reset_button.clicked.connect(self.reset_timer)
         layout.addWidget(self.reset_button)
 
-        self.setLayout(layout)
-        self.add_system_tray_icon()
+    def create_spinbox(self, value, suffix, min_value, max_value):
+        spinbox = QSpinBox(self)
+        spinbox.setSuffix(suffix)
+        spinbox.setRange(min_value, max_value)
+        spinbox.setValue(value)
+        spinbox.valueChanged.connect(self.validate_input)
+        return spinbox
 
     def add_system_tray_icon(self):
         self.tray_icon = QSystemTrayIcon(self)
         script_dir = os.path.dirname(os.path.abspath(__file__))
         icon_path = os.path.join(script_dir, "clock.png")
-        self.tray_icon.setIcon(QIcon(icon_path))
+        try:
+            self.tray_icon.setIcon(QIcon(icon_path))
+        except FileNotFoundError as e:
+            print("Icon file not found:", e)
         tray_menu = QMenu(self)
         exit_action = tray_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
@@ -108,15 +116,10 @@ class TimerApp(QWidget):
             self.timer.stop()
             self.show_notification()
             self.switch_period()
-            if self.is_focus_period:
-                self.time_left = self.focus_minutes * 60 + self.focus_seconds
-            else:
-                self.time_left = self.break_minutes * 60 + self.break_seconds
-            self.setWindowTitle(f"2omer: {self.format_time(self.time_left)}")
+            self.set_period_time()
             self.timer.start(1000)
         else:
             self.update_timer_display()
-            self.setWindowTitle(f"2omer: {self.format_time(self.time_left)}")
 
     def update_timer_display(self):
         minutes = self.time_left // 60
@@ -133,22 +136,25 @@ class TimerApp(QWidget):
 
     def switch_period(self):
         self.is_focus_period = not self.is_focus_period
-        self.time_left = self.focus_minutes * 60 + self.focus_seconds if self.is_focus_period \
-            else self.break_minutes * 60 + self.break_seconds
+
+    def set_period_time(self):
+        if self.is_focus_period:
+            self.time_left = self.focus_minutes * 60 + self.focus_seconds
+        else:
+            self.time_left = self.break_minutes * 60 + self.break_seconds
 
     def show_notification(self):
         notification_title = "Timer Alert"
-        notification_text = f"It's time for a {'break' if self.is_focus_period else 'focus period'}"
-        notification.notify(
-            title=notification_title,
-            message=notification_text,
-            app_name="2omer"
-        )
-
-    def format_time(self, seconds):
-        minutes = seconds // 60
-        seconds = seconds % 60
-        return f"{minutes:02}:{seconds:02}"
+        period = "break" if self.is_focus_period else "focus period"
+        notification_text = f"It's time for a {period}"
+        try:
+            notification.notify(
+                title=notification_title,
+                message=notification_text,
+                app_name="2omer"
+            )
+        except Exception as e:
+            print("Failed to show notification:", e)
 
     def update_tooltip(self):
         self.tray_icon.setToolTip(self.format_time(self.time_left))
@@ -159,6 +165,11 @@ class TimerApp(QWidget):
             self.start_button.setEnabled(False)
         else:
             self.start_button.setEnabled(True)
+
+    def format_time(self, seconds):
+        minutes = seconds // 60
+        seconds = seconds % 60
+        return f"{minutes:02}:{seconds:02}"
 
 
 if __name__ == "__main__":
