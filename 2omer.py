@@ -13,8 +13,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
 )
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QIcon
-from plyer import notification
+from PyQt5.QtGui import QIcon, QFont
 
 
 class TimerApp(QWidget):
@@ -99,7 +98,36 @@ class TimerApp(QWidget):
         spinbox.setSuffix(suffix)
         spinbox.setRange(min_value, max_value)
         spinbox.setValue(value)
-        spinbox.valueChanged.connect(self.validate_input)
+        spinbox.setStyleSheet(
+            """
+            QSpinBox {
+                padding-right: 15px;  /* Add space for arrows */
+                border: 1px solid #ababab; /* Add border */
+                border-radius: 3px; /* Rounded corners */
+            }
+
+            QSpinBox::up-button {
+                subcontrol-origin: border;
+                subcontrol-position: top right; /* Position the up arrow */
+                width: 16px;  /* Set width of the arrow */
+                border-left: 1px solid #ababab; /* Add border to the arrow */
+                border-bottom: 1px solid #ababab; /* Add border to the arrow */
+            }
+
+            QSpinBox::down-button {
+                subcontrol-origin: border;
+                subcontrol-position: bottom right; /* Position the down arrow */
+                width: 16px;  /* Set width of the arrow */
+                border-left: 1px solid #ababab; /* Add border to the arrow */
+                border-top: 1px solid #ababab; /* Add border to the arrow */
+            }
+
+            QSpinBox::up-button:hover,
+            QSpinBox::down-button:hover {
+                background-color: #f0f0f0;  /* Change background color on hover */
+            }
+            """
+        )
         return spinbox
 
     def add_system_tray_icon(self):
@@ -196,31 +224,16 @@ class TimerApp(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # Default style sheet for buttons
     app.setStyleSheet(
         """
-        QWidget {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-        QLabel#PeriodLabel {
-            font-weight: bold;
-            font-size: 18px;
-        }
-        QLabel#TimerLabel {
-            font-size: 24px;
-        }
         QPushButton#StartButton, QPushButton#ResetButton {
-            background-color: #007bff;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-        }
-        QPushButton#StartButton:hover, QPushButton#ResetButton:hover {
-            background-color: #0056b3;
+            font-size: 16px;  /* Set font size */
         }
         """
     )
+
     timer_app = TimerApp()
     timer_app.show()
-    timer_app.start_timer()
     sys.exit(app.exec_())
