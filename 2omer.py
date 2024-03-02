@@ -1,25 +1,15 @@
 import sys
 import os
-from PyQt5.QtWidgets import (
-    QApplication,
-    QWidget,
-    QLabel,
-    QVBoxLayout,
-    QPushButton,
-    QSpinBox,
-    QSystemTrayIcon,
-    QMenu,
-    QGridLayout,
-    QHBoxLayout,
-)
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy
 from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QIcon, QFont
-
+from PyQt5.QtGui import QIcon
+from plyer import notification
 
 class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("2omer: 20:00")
+        self.setGeometry(100, 100, 400, 200)
         self.setFixedSize(400, 200)
 
         self.default_focus_minutes = 20
@@ -43,7 +33,6 @@ class TimerApp(QWidget):
 
     def setup_ui(self):
         layout = QVBoxLayout()
-
         self.setup_period_display(layout)
         self.setup_time_input(layout)
         self.setup_buttons(layout)
@@ -53,81 +42,98 @@ class TimerApp(QWidget):
 
     def setup_period_display(self, layout):
         period_layout = QHBoxLayout()
-        self.period_label = QLabel("Focus Period")
-        self.period_label.setObjectName("PeriodLabel")
+        self.period_label = QLabel()
         period_layout.addWidget(self.period_label)
         self.timer_label = QLabel()
-        self.timer_label.setObjectName("TimerLabel")
         period_layout.addWidget(self.timer_label)
         layout.addLayout(period_layout)
 
     def setup_time_input(self, layout):
         grid_layout = QGridLayout()
+        grid_layout.addWidget(QLabel("Focus Period:"), 2, 0)
+        
+        focus_period_layout = QHBoxLayout()
+        self.focus_minutes_spinbox = self.create_spinbox(self.focus_minutes, "", 0, 59)
+        focus_period_layout.addWidget(self.focus_minutes_spinbox)
+        focus_period_layout.addWidget(QLabel("minutes"))
+        self.focus_seconds_spinbox = self.create_spinbox(self.focus_seconds, "", 0, 59)
+        focus_period_layout.addWidget(self.focus_seconds_spinbox)
+        focus_period_layout.addWidget(QLabel("seconds"))
+        grid_layout.addLayout(focus_period_layout, 2, 1)
 
-        grid_layout.addWidget(QLabel("Focus Period:"), 1, 0)
-        self.focus_minutes_spinbox = self.create_spinbox(self.focus_minutes, " minutes", 0, 59)
-        grid_layout.addWidget(self.focus_minutes_spinbox, 1, 1)
-        self.focus_seconds_spinbox = self.create_spinbox(self.focus_seconds, " seconds", 0, 59)
-        grid_layout.addWidget(self.focus_seconds_spinbox, 1, 2)
-
-        grid_layout.addWidget(QLabel("Break Period:"), 2, 0)
-        self.break_minutes_spinbox = self.create_spinbox(self.break_minutes, " minutes", 0, 59)
-        grid_layout.addWidget(self.break_minutes_spinbox, 2, 1)
-        self.break_seconds_spinbox = self.create_spinbox(self.break_seconds, " seconds", 0, 59)
-        grid_layout.addWidget(self.break_seconds_spinbox, 2, 2)
-
+        grid_layout.addWidget(QLabel("Break Period:"), 3, 0)
+        break_period_layout = QHBoxLayout()
+        self.break_minutes_spinbox = self.create_spinbox(self.break_minutes, "", 0, 59)
+        break_period_layout.addWidget(self.break_minutes_spinbox)
+        break_period_layout.addWidget(QLabel("minutes"))
+        self.break_seconds_spinbox = self.create_spinbox(self.break_seconds, "", 0, 59)
+        break_period_layout.addWidget(self.break_seconds_spinbox)
+        break_period_layout.addWidget(QLabel("seconds"))
+        grid_layout.addLayout(break_period_layout, 3, 1)
+        
         layout.addLayout(grid_layout)
 
     def setup_buttons(self, layout):
-        button_layout = QHBoxLayout()
-
-        self.start_button = QPushButton("Start")
-        self.start_button.setObjectName("StartButton")
+        self.start_button = QPushButton("Start", self)
         self.start_button.clicked.connect(self.start_timer)
-        button_layout.addWidget(self.start_button)
+        layout.addWidget(self.start_button)
 
-        self.reset_button = QPushButton("Reset")
-        self.reset_button.setObjectName("ResetButton")
+        self.reset_button = QPushButton("Reset", self)
         self.reset_button.clicked.connect(self.reset_timer)
-        button_layout.addWidget(self.reset_button)
-
-        layout.addLayout(button_layout)
+        layout.addWidget(self.reset_button)
 
     def create_spinbox(self, value, suffix, min_value, max_value):
-        spinbox = QSpinBox()
+        spinbox = QSpinBox(self)
         spinbox.setSuffix(suffix)
         spinbox.setRange(min_value, max_value)
         spinbox.setValue(value)
-        spinbox.setStyleSheet(
-            """
-            QSpinBox {
-                padding-right: 15px;  /* Add space for arrows */
-                border: 1px solid #ababab; /* Add border */
-                border-radius: 3px; /* Rounded corners */
-            }
+        spinbox.valueChanged.connect(self.validate_input)
 
+        # Set size policy to fixed and adjust width for better appearance
+        spinbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        spinbox.setFixedWidth(80)  # Adjust width as needed
+
+        # Apply updated style sheet
+        spinbox.setStyleSheet("""
+            QSpinBox {
+                border: 1px solid #C6C6C6;
+                border-radius: 5px;
+                padding: 3px;
+                background-color: #F3F3F3; /* Main background color */
+                min-width: 60px;
+            }
+            
             QSpinBox::up-button {
                 subcontrol-origin: border;
-                subcontrol-position: top right; /* Position the up arrow */
-                width: 16px;  /* Set width of the arrow */
-                border-left: 1px solid #ababab; /* Add border to the arrow */
-                border-bottom: 1px solid #ababab; /* Add border to the arrow */
+                subcontrol-position: top right;
+                width: 20px;
+                border-left: 1px solid #C6C6C6;
+                border-top-right-radius: 5px;
+                border-bottom-right-radius: 0px;
+                background-color: #F3F3F3; /* Main background color */
             }
-
+            
             QSpinBox::down-button {
                 subcontrol-origin: border;
-                subcontrol-position: bottom right; /* Position the down arrow */
-                width: 16px;  /* Set width of the arrow */
-                border-left: 1px solid #ababab; /* Add border to the arrow */
-                border-top: 1px solid #ababab; /* Add border to the arrow */
+                subcontrol-position: bottom right;
+                width: 20px;
+                border-left: 1px solid #C6C6C6;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 5px;
+                background-color: #F3F3F3; /* Main background color */
             }
-
+            
             QSpinBox::up-button:hover,
             QSpinBox::down-button:hover {
-                background-color: #f0f0f0;  /* Change background color on hover */
+                background-color: #E6E6E6; /* Lighter shade for hover */
             }
-            """
-        )
+            
+            QSpinBox::up-button:pressed,
+            QSpinBox::down-button:pressed {
+                background-color: #D9D9D9; /* Darker shade for pressed */
+            }
+        """)
+
         return spinbox
 
     def add_system_tray_icon(self):
@@ -138,7 +144,7 @@ class TimerApp(QWidget):
             self.tray_icon.setIcon(QIcon(icon_path))
         except FileNotFoundError as e:
             print("Icon file not found:", e)
-        tray_menu = QMenu()
+        tray_menu = QMenu(self)
         exit_action = tray_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
         self.tray_icon.setContextMenu(tray_menu)
@@ -199,7 +205,11 @@ class TimerApp(QWidget):
         period = "break" if self.is_focus_period else "focus period"
         notification_text = f"It's time for a {period}"
         try:
-            notification.notify(title=notification_title, message=notification_text, app_name="2omer")
+            notification.notify(
+                title=notification_title,
+                message=notification_text,
+                app_name="2omer"
+            )
         except Exception as e:
             print("Failed to show notification:", e)
 
@@ -207,11 +217,8 @@ class TimerApp(QWidget):
         self.tray_icon.setToolTip(self.format_time(self.time_left))
 
     def validate_input(self):
-        if (
-            self.focus_minutes_spinbox.value() == 0 and self.focus_seconds_spinbox.value() == 0
-        ) or (
-            self.break_minutes_spinbox.value() == 0 and self.break_seconds_spinbox.value() == 0
-        ):
+        if (self.focus_minutes_spinbox.value() == 0 and self.focus_seconds_spinbox.value() == 0) \
+                or (self.break_minutes_spinbox.value() == 0 and self.break_seconds_spinbox.value() == 0):
             self.start_button.setEnabled(False)
         else:
             self.start_button.setEnabled(True)
@@ -224,16 +231,7 @@ class TimerApp(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
-    # Default style sheet for buttons
-    app.setStyleSheet(
-        """
-        QPushButton#StartButton, QPushButton#ResetButton {
-            font-size: 16px;  /* Set font size */
-        }
-        """
-    )
-
     timer_app = TimerApp()
     timer_app.show()
+    timer_app.start_timer()
     sys.exit(app.exec_())
