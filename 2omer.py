@@ -51,15 +51,26 @@ class TimerApp(QWidget):
     def setup_time_input(self, layout):
         grid_layout = QGridLayout()
         grid_layout.addWidget(QLabel("Focus Period:"), 2, 0)
-        self.focus_minutes_spinbox = self.create_spinbox(self.focus_minutes, " minutes", 0, 59)
-        grid_layout.addWidget(self.focus_minutes_spinbox, 2, 1)
-        self.focus_seconds_spinbox = self.create_spinbox(self.focus_seconds, " seconds", 0, 59)
-        grid_layout.addWidget(self.focus_seconds_spinbox, 2, 2)
+        
+        focus_period_layout = QHBoxLayout()
+        self.focus_minutes_spinbox = self.create_spinbox(self.focus_minutes, "", 0, 59)
+        focus_period_layout.addWidget(self.focus_minutes_spinbox)
+        focus_period_layout.addWidget(QLabel("minutes"))
+        self.focus_seconds_spinbox = self.create_spinbox(self.focus_seconds, "", 0, 59)
+        focus_period_layout.addWidget(self.focus_seconds_spinbox)
+        focus_period_layout.addWidget(QLabel("seconds"))
+        grid_layout.addLayout(focus_period_layout, 2, 1)
+
         grid_layout.addWidget(QLabel("Break Period:"), 3, 0)
-        self.break_minutes_spinbox = self.create_spinbox(self.break_minutes, " minutes", 0, 59)
-        grid_layout.addWidget(self.break_minutes_spinbox, 3, 1)
-        self.break_seconds_spinbox = self.create_spinbox(self.break_seconds, " seconds", 0, 59)
-        grid_layout.addWidget(self.break_seconds_spinbox, 3, 2)
+        break_period_layout = QHBoxLayout()
+        self.break_minutes_spinbox = self.create_spinbox(self.break_minutes, "", 0, 59)
+        break_period_layout.addWidget(self.break_minutes_spinbox)
+        break_period_layout.addWidget(QLabel("minutes"))
+        self.break_seconds_spinbox = self.create_spinbox(self.break_seconds, "", 0, 59)
+        break_period_layout.addWidget(self.break_seconds_spinbox)
+        break_period_layout.addWidget(QLabel("seconds"))
+        grid_layout.addLayout(break_period_layout, 3, 1)
+        
         layout.addLayout(grid_layout)
 
     def setup_buttons(self, layout):
