@@ -9,7 +9,7 @@ class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
         # Initialize the application window
-        self.setWindowTitle("2omer - 20:00")  # Change the window title here
+        self.setWindowTitle("2omer: 20:00")  # Change the window title here
         self.setGeometry(100, 100, 400, 200)
         self.setFixedSize(400, 200)  # Lock the size
 
@@ -124,7 +124,7 @@ class TimerApp(QWidget):
         self.time_left = self.focus_minutes * 60 + self.focus_seconds
         self.is_focus_period = True
         self.update_timer_display()
-        self.setWindowTitle("2omer - 20:00")  # Reset window title
+        self.setWindowTitle("2omer: 20:00")  # Reset window title
         self.start_button.setEnabled(True)
 
     def update_timer(self):
@@ -139,17 +139,19 @@ class TimerApp(QWidget):
                 self.time_left = self.focus_minutes * 60 + self.focus_seconds
             else:
                 self.time_left = self.break_minutes * 60 + self.break_seconds
-            self.setWindowTitle("2omer - 20:00")  # Reset window title
+            self.setWindowTitle(f"2omer: {self.format_time(self.time_left)}")  # Update window title
             self.timer.start(1000)
         else:
             self.update_timer_display()
-            self.setWindowTitle(f"2omer - {self.format_time(self.time_left)}")  # Update window title
+            self.setWindowTitle(f"2omer: {self.format_time(self.time_left)}")  # Update window title
 
     def update_timer_display(self):
         # Update the timer label text with the current time left, bolding the time left part
         minutes = self.time_left // 60
         seconds = self.time_left % 60
-        self.timer_label.setText(f"Focus Period: <b>{minutes:02}:{seconds:02}</b>")
+        time_str = f"{minutes:02}:{seconds:02}"
+        self.timer_label.setText(f"Focus Period: <b>{time_str}</b>")
+        self.setWindowTitle(f"2omer: {time_str}")  # Update window title
 
     def set_custom_times(self):
         # Set custom focus and break times if valid inputs are provided
