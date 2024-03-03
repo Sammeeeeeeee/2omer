@@ -1,7 +1,7 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon
 from plyer import notification
 
@@ -39,6 +39,53 @@ class TimerApp(QWidget):
 
         self.setLayout(layout)
         self.add_system_tray_icon()
+
+        # Apply style sheet at the application level
+        self.apply_stylesheet()
+
+    def apply_stylesheet(self):
+        style_sheet = """
+            QSpinBox {
+                border: 1px solid #C6C6C6;
+                border-radius: 5px;
+                padding: 3px;
+                background-color: #F3F3F3; /* Main background color */
+                min-width: 60px;
+            }
+
+            QSpinBox::up-button {
+                subcontrol-origin: border;
+                subcontrol-position: top right;
+                width: 20px;
+                border-left: 1px solid #C6C6C6;
+                border-top-right-radius: 5px;
+                border-bottom-right-radius: 0px;
+                background-color: #F3F3F3; /* Main background color */
+                color: #000000; /* Arrow color */
+            }
+
+            QSpinBox::down-button {
+                subcontrol-origin: border;
+                subcontrol-position: bottom right;
+                width: 20px;
+                border-left: 1px solid #C6C6C6;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 5px;
+                background-color: #F3F3F3; /* Main background color */
+                color: #000000; /* Arrow color */
+            }
+
+            QSpinBox::up-button:hover,
+            QSpinBox::down-button:hover {
+                background-color: #E6E6E6; /* Lighter shade for hover */
+            }
+
+            QSpinBox::up-button:pressed,
+            QSpinBox::down-button:pressed {
+                background-color: #D9D9D9; /* Darker shade for pressed */
+            }
+        """
+        self.setStyleSheet(style_sheet)
 
     def setup_period_display(self, layout):
         period_layout = QHBoxLayout()
@@ -88,51 +135,13 @@ class TimerApp(QWidget):
         spinbox.setRange(min_value, max_value)
         spinbox.setValue(value)
         spinbox.valueChanged.connect(self.validate_input)
+        
+        # Set focus policy to Qt.StrongFocus
+        spinbox.setFocusPolicy(Qt.StrongFocus)
 
         # Set size policy to fixed and adjust width for better appearance
         spinbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         spinbox.setFixedWidth(80)  # Adjust width as needed
-
-        # Apply updated style sheet
-        spinbox.setStyleSheet("""
-            QSpinBox {
-                border: 1px solid #C6C6C6;
-                border-radius: 5px;
-                padding: 3px;
-                background-color: #F3F3F3; /* Main background color */
-                min-width: 60px;
-            }
-            
-            QSpinBox::up-button {
-                subcontrol-origin: border;
-                subcontrol-position: top right;
-                width: 20px;
-                border-left: 1px solid #C6C6C6;
-                border-top-right-radius: 5px;
-                border-bottom-right-radius: 0px;
-                background-color: #F3F3F3; /* Main background color */
-            }
-            
-            QSpinBox::down-button {
-                subcontrol-origin: border;
-                subcontrol-position: bottom right;
-                width: 20px;
-                border-left: 1px solid #C6C6C6;
-                border-top-right-radius: 0px;
-                border-bottom-right-radius: 5px;
-                background-color: #F3F3F3; /* Main background color */
-            }
-            
-            QSpinBox::up-button:hover,
-            QSpinBox::down-button:hover {
-                background-color: #E6E6E6; /* Lighter shade for hover */
-            }
-            
-            QSpinBox::up-button:pressed,
-            QSpinBox::down-button:pressed {
-                background-color: #D9D9D9; /* Darker shade for pressed */
-            }
-        """)
 
         return spinbox
 
