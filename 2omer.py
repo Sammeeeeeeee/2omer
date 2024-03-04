@@ -9,8 +9,8 @@ class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("2omer: 20:00")
-        self.setGeometry(100, 100, 400, 200)
-        self.setFixedSize(400, 200)
+        self.setGeometry(100, 100, 450, 200)  # Adjusted window width
+        self.setFixedSize(450, 200)  # Adjusted fixed size
 
         self.default_focus_minutes = 20
         self.default_focus_seconds = 0
@@ -40,65 +40,18 @@ class TimerApp(QWidget):
         self.setLayout(layout)
         self.add_system_tray_icon()
 
-        # Apply style sheet at the application level
-        self.apply_stylesheet()
-
-    def apply_stylesheet(self):
-        style_sheet = """
-            QSpinBox {
-                border: 1px solid #C6C6C6;
-                border-radius: 5px;
-                padding: 3px;
-                background-color: #F3F3F3; /* Main background color */
-                min-width: 60px;
-            }
-
-            QSpinBox::up-button {
-                subcontrol-origin: border;
-                subcontrol-position: top right;
-                width: 20px;
-                border-left: 1px solid #C6C6C6;
-                border-top-right-radius: 5px;
-                border-bottom-right-radius: 0px;
-                background-color: #F3F3F3; /* Main background color */
-                color: #000000; /* Arrow color */
-            }
-
-            QSpinBox::down-button {
-                subcontrol-origin: border;
-                subcontrol-position: bottom right;
-                width: 20px;
-                border-left: 1px solid #C6C6C6;
-                border-top-right-radius: 0px;
-                border-bottom-right-radius: 5px;
-                background-color: #F3F3F3; /* Main background color */
-                color: #000000; /* Arrow color */
-            }
-
-            QSpinBox::up-button:hover,
-            QSpinBox::down-button:hover {
-                background-color: #E6E6E6; /* Lighter shade for hover */
-            }
-
-            QSpinBox::up-button:pressed,
-            QSpinBox::down-button:pressed {
-                background-color: #D9D9D9; /* Darker shade for pressed */
-            }
-        """
-        self.setStyleSheet(style_sheet)
-
     def setup_period_display(self, layout):
-        period_layout = QHBoxLayout()
         self.period_label = QLabel()
-        period_layout.addWidget(self.period_label)
-        self.timer_label = QLabel()
-        period_layout.addWidget(self.timer_label)
-        layout.addLayout(period_layout)
+        self.period_label.setAlignment(Qt.AlignCenter)  # Align label to center
+        layout.addWidget(self.period_label)
 
     def setup_time_input(self, layout):
         grid_layout = QGridLayout()
-        grid_layout.addWidget(QLabel("Focus Period:"), 2, 0)
-        
+
+        # Adjusted labels position
+        grid_layout.addWidget(QLabel("Focus Period:"), 1, 0)
+        grid_layout.addWidget(QLabel("Break Period:"), 2, 0)
+
         focus_period_layout = QHBoxLayout()
         self.focus_minutes_spinbox = self.create_spinbox(self.focus_minutes, "", 0, 59)
         focus_period_layout.addWidget(self.focus_minutes_spinbox)
@@ -106,9 +59,8 @@ class TimerApp(QWidget):
         self.focus_seconds_spinbox = self.create_spinbox(self.focus_seconds, "", 0, 59)
         focus_period_layout.addWidget(self.focus_seconds_spinbox)
         focus_period_layout.addWidget(QLabel("seconds"))
-        grid_layout.addLayout(focus_period_layout, 2, 1)
+        grid_layout.addLayout(focus_period_layout, 1, 1)
 
-        grid_layout.addWidget(QLabel("Break Period:"), 3, 0)
         break_period_layout = QHBoxLayout()
         self.break_minutes_spinbox = self.create_spinbox(self.break_minutes, "", 0, 59)
         break_period_layout.addWidget(self.break_minutes_spinbox)
@@ -116,8 +68,8 @@ class TimerApp(QWidget):
         self.break_seconds_spinbox = self.create_spinbox(self.break_seconds, "", 0, 59)
         break_period_layout.addWidget(self.break_seconds_spinbox)
         break_period_layout.addWidget(QLabel("seconds"))
-        grid_layout.addLayout(break_period_layout, 3, 1)
-        
+        grid_layout.addLayout(break_period_layout, 2, 1)
+
         layout.addLayout(grid_layout)
 
     def setup_buttons(self, layout):
@@ -191,8 +143,8 @@ class TimerApp(QWidget):
         minutes = self.time_left // 60
         seconds = self.time_left % 60
         time_str = f"{minutes:02}:{seconds:02}"
-        self.timer_label.setText(f"<b>{time_str}</b>")
-        self.period_label.setText("Focus Period" if self.is_focus_period else "Break Period")
+        period = "Focus Period" if self.is_focus_period else "Break Period"
+        self.period_label.setText(f"<b>{period}: {time_str}</b>")
 
     def set_custom_times(self):
         self.focus_minutes = self.focus_minutes_spinbox.value()
