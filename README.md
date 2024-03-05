@@ -25,6 +25,8 @@ Simple 20 20 20 timer / Pomodoro application, to help remind you to rest / relax
  - Slightly faster to load
 
 <img width="204" alt="image" src="https://github.com/Sammeeeeeeee/2omer/assets/139072031/62c67a4a-4286-42a7-84ff-525c1a55eab0">
+
+
 --------------
 
 ## Features
