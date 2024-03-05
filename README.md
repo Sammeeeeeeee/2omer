@@ -15,6 +15,8 @@ Simple 20 20 20 timer / Pomodoro application, to help remind you to rest / relax
  - Uses Windows notification system
  - Tray icon, showing time left and to exit,
  - Improved error handling
+ - 
+<img width="230" alt="Screenshot 2024-03-05 010949" src="https://github.com/Sammeeeeeeee/2omer/assets/139072031/35925255-5dbe-430c-b9ad-f5f184bb2d86">
 
 ## [Version 1](https://github.com/Sammeeeeeeee/2omer/releases/tag/V1.0.0)
 
