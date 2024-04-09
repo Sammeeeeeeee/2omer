@@ -47,7 +47,7 @@ Find the latest relase [here](https://github.com/Sammeeeeeeee/2omer/releases "Re
 
 ### Run manually
 
-1. Ensure you have Python amd git installed on your system.
+1. Ensure you have Python and git installed on your system.
 2. Install PyQt5 library using pip:
    ```
    pip install PyQt5
