@@ -1,6 +1,7 @@
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy
+import json
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QGridLayout, QHBoxLayout, QSizePolicy, QDialog, QRadioButton, QDialogButtonBox
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase
 
@@ -19,16 +20,18 @@ DEFAULT_BREAK_SECS = 20
 TIMER_INTERVAL = 1000
 SPINBOX_WIDTH = 60
 
-
 class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"{APP_TITLE}: {DEFAULT_FOCUS_MINS:02}:{DEFAULT_FOCUS_SECS:02}")
+
+        self.config_dir = os.path.join(os.getenv('APPDATA'), '2omer')
+        self.config_file = os.path.join(self.config_dir, "config.json")
+
+        self.load_config()
+        self.setWindowTitle(f"{APP_TITLE}: {self.focus_minutes:02}:{self.focus_seconds:02}")
         self.setGeometry(100, 100, APP_WIDTH, APP_HEIGHT)
         self.setFixedSize(APP_WIDTH, APP_HEIGHT)
         self.load_font()
-
-        self.init_period_values()
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_timer)
@@ -37,17 +40,60 @@ class TimerApp(QWidget):
         self.setup_ui()
         self.add_system_tray_icon()
 
-    def init_period_values(self):
+    def load_config(self):
+        try:
+            with open(self.config_file, "r") as config_file:
+                config = json.load(config_file)
+                self.focus_minutes = config.get("focus_minutes", DEFAULT_FOCUS_MINS)
+                self.focus_seconds = config.get("focus_seconds", DEFAULT_FOCUS_SECS)
+                self.break_minutes = config.get("break_minutes", DEFAULT_BREAK_MINS)
+                self.break_seconds = config.get("break_seconds", DEFAULT_BREAK_SECS)
+        except FileNotFoundError:
+            self.create_default_config()
+
+        self.time_left = self.focus_minutes * 60 + self.focus_seconds
+        self.is_focus_period = True
+
+    def save_config(self):
+        config = {
+            "focus_minutes": self.focus_minutes_spinbox.value(),
+            "focus_seconds": self.focus_seconds_spinbox.value(),
+            "break_minutes": self.break_minutes_spinbox.value(),
+            "break_seconds": self.break_seconds_spinbox.value()
+        }
+        try:
+            if not os.path.exists(self.config_dir):
+                os.makedirs(self.config_dir)
+            with open(self.config_file, "w") as config_file:
+                json.dump(config, config_file)
+        except Exception as e:
+            print(f"Error saving config: {e}")
+
+    def create_default_config(self):
+        default_config = {
+            "focus_minutes": DEFAULT_FOCUS_MINS,
+            "focus_seconds": DEFAULT_FOCUS_SECS,
+            "break_minutes": DEFAULT_BREAK_MINS,
+            "break_seconds": DEFAULT_BREAK_SECS
+        }
+        try:
+            if not os.path.exists(self.config_dir):
+                os.makedirs(self.config_dir)
+            with open(self.config_file, "w") as config_file:
+                json.dump(default_config, config_file)
+        except Exception as e:
+            print(f"Error creating default config: {e}")
+            sys.exit()
+
+        # Assign default values
         self.focus_minutes = DEFAULT_FOCUS_MINS
         self.focus_seconds = DEFAULT_FOCUS_SECS
         self.break_minutes = DEFAULT_BREAK_MINS
         self.break_seconds = DEFAULT_BREAK_SECS
-        self.time_left = self.focus_minutes * 60 + self.focus_seconds
-        self.is_focus_period = True
 
     def load_font(self):
         QFontDatabase.addApplicationFont(FONT_PATH)
-        
+
     def setup_ui(self):
         layout = QVBoxLayout()
         self.setup_period_display(layout)
@@ -66,6 +112,12 @@ class TimerApp(QWidget):
         self.focus_minutes_spinbox, self.focus_seconds_spinbox = self.create_period_layout(grid_layout, 1, self.focus_minutes, self.focus_seconds)
         self.break_minutes_spinbox, self.break_seconds_spinbox = self.create_period_layout(grid_layout, 2, self.break_minutes, self.break_seconds)
         layout.addLayout(grid_layout)
+
+        # Connect valueChanged signal of spinboxes to save_config method
+        self.focus_minutes_spinbox.valueChanged.connect(self.save_config)
+        self.focus_seconds_spinbox.valueChanged.connect(self.save_config)
+        self.break_minutes_spinbox.valueChanged.connect(self.save_config)
+        self.break_seconds_spinbox.valueChanged.connect(self.save_config)
 
     def create_period_layout(self, layout, row, minutes, seconds):
         period_layout = QHBoxLayout()
@@ -109,21 +161,6 @@ class TimerApp(QWidget):
         spinbox.valueChanged.connect(self.validate_input)
         return spinbox
 
-    def add_system_tray_icon(self):
-        self.tray_icon = QSystemTrayIcon(self)
-        self.tray_icon.setIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
-        tray_menu = QMenu(self)
-        exit_action = tray_menu.addAction("Exit")
-        exit_action.triggered.connect(self.close)
-        self.tray_icon.setContextMenu(tray_menu)
-        self.update_tooltip()
-        self.tray_icon.show()
-        self.setWindowIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
-
-    def get_script_dir_path(self, filename):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(script_dir, filename)
-
     def start_timer(self):
         self.set_custom_times()  # Set custom times first
         if not self.timer.isActive():
@@ -133,7 +170,8 @@ class TimerApp(QWidget):
 
     def reset_timer(self):
         self.timer.stop()
-        self.init_period_values()
+        self.load_config()
+        self.set_period_time()  # Update period time based on loaded configuration
         self.update_timer_display()
         self.start_button.setEnabled(True)
 
@@ -190,10 +228,16 @@ class TimerApp(QWidget):
         seconds = seconds % 60
         return f"{minutes:02}:{seconds:02}"
 
+    def add_system_tray_icon(self):
+        self.tray_icon = QSystemTrayIcon(QIcon(ICON_PATH), self)
+        self.tray_icon.show()
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
     timer_app = TimerApp()
     timer_app.show()
     timer_app.start_timer()
     sys.exit(app.exec_())
+
+if __name__ == "__main__":
+    main()
