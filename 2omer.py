@@ -1,7 +1,7 @@
 import sys
 import os
 import json
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QGridLayout, QHBoxLayout, QSizePolicy, QDialog, QRadioButton, QDialogButtonBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QGridLayout, QHBoxLayout, QSizePolicy, QDialog, QRadioButton, QMessageBox, QAction, QMenu
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase
 
@@ -41,6 +41,10 @@ class TimerApp(QWidget):
         self.add_system_tray_icon()
 
     def load_config(self):
+        if not os.path.exists(self.config_dir):
+            self.show_notification("Configuration directory not found", "The configuration directory does not exist.")
+            return
+
         try:
             with open(self.config_file, "r") as config_file:
                 config = json.load(config_file)
@@ -179,7 +183,7 @@ class TimerApp(QWidget):
         self.time_left -= 1
         if self.time_left <= 0:
             self.timer.stop()
-            self.show_notification()
+            self.show_notification(f"{APP_TITLE} Notification", f"It's time for a {'break' if self.is_focus_period else 'focus period'}")
             self.switch_period()
             self.set_period_time()
             self.timer.start(TIMER_INTERVAL)
@@ -207,14 +211,11 @@ class TimerApp(QWidget):
         else:
             self.time_left = self.break_minutes * 60 + self.break_seconds
 
-    def show_notification(self):
-        notification_title = "2omer"
-        period = "break" if self.is_focus_period else "focus period"
-        notification_text = f"It's time for a {period}"
-        self.tray_icon.showMessage(notification_title, notification_text)
+    def show_notification(self, title, message):
+        QMessageBox.information(self, title, message)
 
     def update_tooltip(self):
-        self.tray_icon.setToolTip(self.format_time(self.time_left))
+        pass
 
     def validate_input(self):
         if (self.focus_minutes_spinbox.value() == 0 and self.focus_seconds_spinbox.value() == 0) \
@@ -229,8 +230,29 @@ class TimerApp(QWidget):
         return f"{minutes:02}:{seconds:02}"
 
     def add_system_tray_icon(self):
-        self.tray_icon = QSystemTrayIcon(QIcon(ICON_PATH), self)
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon(ICON_PATH))
+        
+        tray_menu = QMenu()
+        
+        show_action = QAction("Show/Hide", self)
+        show_action.triggered.connect(self.toggle_visibility)
+        tray_menu.addAction(show_action)
+        
+        tray_menu.addSeparator()
+        
+        close_action = QAction("Exit", self)
+        close_action.triggered.connect(self.close)
+        tray_menu.addAction(close_action)
+        
+        self.tray_icon.setContextMenu(tray_menu)
         self.tray_icon.show()
+
+    def toggle_visibility(self):
+        if self.isVisible():
+            self.hide()
+        else:
+            self.show()
 
 def main():
     app = QApplication(sys.argv)
