@@ -36,6 +36,7 @@ class TimerApp(QWidget):
         self.timer.timeout.connect(self.update_tooltip)
         self.setup_ui()
         self.add_system_tray_icon()
+        self.is_timer_running = False
 
     def init_period_values(self):
         if os.path.exists(SETTINGS_FILE):
@@ -94,10 +95,8 @@ class TimerApp(QWidget):
         return minutes_spinbox, seconds_spinbox
 
     def setup_buttons(self, layout):
-        self.start_button = self.create_button("Start", self.start_timer)
-        self.reset_button = self.create_button("Reset", self.reset_timer)
-        layout.addWidget(self.start_button)
-        layout.addWidget(self.reset_button)
+        self.control_button = self.create_button("Start", self.control_timer)
+        layout.addWidget(self.control_button)
 
     def create_button(self, title, function):
         button = QPushButton(title, self)
@@ -142,19 +141,33 @@ class TimerApp(QWidget):
         script_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(script_dir, filename)
 
+    def control_timer(self):
+        if self.is_timer_running:
+            self.pause_timer()
+        else:
+            self.start_timer()
+
     def start_timer(self):
         self.set_custom_times()
         if not self.timer.isActive():
             self.set_period_time()
             self.timer.start(TIMER_INTERVAL)
-            self.start_button.setEnabled(False)
+            self.control_button.setText("Pause")
+            self.is_timer_running = True
             self.save_settings()
+
+    def pause_timer(self):
+        self.timer.stop()
+        self.control_button.setText("Resume")
+        self.is_timer_running = False
+        self.save_settings()
 
     def reset_timer(self):
         self.timer.stop()
         self.init_period_values()
         self.update_timer_display()
-        self.start_button.setEnabled(True)
+        self.control_button.setText("Start")
+        self.is_timer_running = False
         self.save_settings()
 
     def update_timer(self):
@@ -200,9 +213,9 @@ class TimerApp(QWidget):
     def validate_input(self):
         if (self.focus_minutes_spinbox.value() == 0 and self.focus_seconds_spinbox.value() == 0) \
                 or (self.break_minutes_spinbox.value() == 0 and self.break_seconds_spinbox.value() == 0):
-            self.start_button.setEnabled(False)
+            self.control_button.setEnabled(False)
         else:
-            self.start_button.setEnabled(True)
+            self.control_button.setEnabled(True)
 
     def format_time(self, seconds):
         minutes = seconds // 60
@@ -235,5 +248,4 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     timer_app = TimerApp()
     timer_app.show()
-    timer_app.start_timer()
     sys.exit(app.exec_())
