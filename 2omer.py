@@ -19,7 +19,7 @@ DEFAULT_BREAK_MINS = 0  # Default break period minutes
 DEFAULT_BREAK_SECS = 20  # Default break period seconds
 TIMER_INTERVAL = 1000  # Timer interval in milliseconds
 SPINBOX_WIDTH = 60  # Width of the spin boxes
-SETTINGS_FILE = os.path.join(os.getenv('APPDATA'), "timer_settings.json")  # Path to the settings JSON file in appdata
+SETTINGS_FILE = os.path.expanduser("~/.timer_settings.json")  # Path to the settings JSON file in appdata
 
 # Main application class
 class TimerApp(QWidget):
