@@ -9,6 +9,12 @@
 Simple 20 20 20 timer / Pomodoro application, to help remind you to rest / relax when using your PC, built using PyQt5 in Python. You can customise a focus period and a break period durations. It features a countdown timer and notifies you when each period ends.
 
 --------------
+## [Version 3](https://github.com/Sammeeeeeeee/2omer/releases/tag/V3.0.0)
+ - Now keeps data
+> [!WARNING]  
+>### Antivirus results
+> This relase is being recognised as a trojan by some antivirus's. Wokring assumption is this is because it is a python script fiddeling with APPDATA. A release will be out soon with the JSON being saved elsewhere. For now, stay on the previous version if you are running a sensative antivirus. 
+
 ## [Version 2](https://github.com/Sammeeeeeeee/2omer/releases/tag/V2.0.0)
 
  - Nicer UI
@@ -42,8 +48,6 @@ Simple 20 20 20 timer / Pomodoro application, to help remind you to rest / relax
 ### Easy: Run the EXE
 
 Find the latest relase [here](https://github.com/Sammeeeeeeee/2omer/releases "Releases"). Download and run. 
-
-> No installer available yet.
 
 ### Run manually
 
