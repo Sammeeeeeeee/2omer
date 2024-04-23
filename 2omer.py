@@ -30,14 +30,6 @@ class TimerApp(QWidget):
         self.setFixedSize(APP_WIDTH, APP_HEIGHT)
         self.load_font()
 
-        if not os.path.exists(SETTINGS_FILE):
-            reply = QMessageBox.question(self, 'No Configuration Found', 'No configuration file found. Create one?',
-                                         QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
-            if reply == QMessageBox.Yes:
-                self.create_default_settings()
-            else:
-                sys.exit()
-
         self.init_period_values()
 
         self.timer = QTimer(self)
@@ -46,30 +38,38 @@ class TimerApp(QWidget):
 
         self.setup_ui()
         self.add_system_tray_icon()
-
-    def load_font(self):
-        QFontDatabase.addApplicationFont(FONT_PATH)
-
-    def create_default_settings(self):
-        default_settings = {
-            'focus_minutes': DEFAULT_FOCUS_MINS,
-            'focus_seconds': DEFAULT_FOCUS_SECS,
-            'break_minutes': DEFAULT_BREAK_MINS,
-            'break_seconds': DEFAULT_BREAK_SECS
-        }
-        with open(SETTINGS_FILE, 'w') as file:
-            json.dump(default_settings, file)
-
+        
     def init_period_values(self):
-        with open(SETTINGS_FILE, 'r') as file:
-            settings = json.load(file)
-            self.focus_minutes = settings.get('focus_minutes', DEFAULT_FOCUS_MINS)
-            self.focus_seconds = settings.get('focus_seconds', DEFAULT_FOCUS_SECS)
-            self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
-            self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
+        # Check if settings file exists
+        if os.path.exists(SETTINGS_FILE):
+            # Load settings from JSON file
+            with open(SETTINGS_FILE, 'r') as file:
+                settings = json.load(file)
+                self.focus_minutes = settings.get('focus_minutes', DEFAULT_FOCUS_MINS)
+                self.focus_seconds = settings.get('focus_seconds', DEFAULT_FOCUS_SECS)
+                self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
+                self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
+        else:
+            # If settings file doesn't exist, prompt the user to continue
+            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings where found. You can create to save settings, or ignore to choose everytime')
+            reply.addButton('Create', QMessageBox.YesRole)
+            reply.addButton('Ignore', QMessageBox.NoRole)
+            button = reply.exec_()
+            if button == QMessageBox.No:
+                sys.exit()  # Exit the application if the user chooses not to continue
+            else:
+                # Use default values if the user chooses to continue
+                self.focus_minutes = DEFAULT_FOCUS_MINS
+                self.focus_seconds = DEFAULT_FOCUS_SECS
+                self.break_minutes = DEFAULT_BREAK_MINS
+                self.break_seconds = DEFAULT_BREAK_SECS
 
         self.time_left = self.focus_minutes * 60 + self.focus_seconds
         self.is_focus_period = True
+
+
+    def load_font(self):
+        QFontDatabase.addApplicationFont(FONT_PATH)
 
     def setup_ui(self):
         layout = QVBoxLayout()
@@ -239,7 +239,6 @@ class TimerApp(QWidget):
                 QMessageBox.warning(self, 'Config Not Found', 'Configuration file not found.', QMessageBox.Ok)
             except Exception as e:
                 QMessageBox.critical(self, 'Error', f'An error occurred: {str(e)}', QMessageBox.Ok)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
