@@ -13,7 +13,7 @@ Simple 20 20 20 timer / Pomodoro application, to help remind you to rest / relax
  - Now keeps data
 > [!WARNING]  
 >### Antivirus results
-> This relase is being recognised as a trojan by some antivirus's. Wokring assumption is this is because it is a python script fiddeling with APPDATA. You can now download a bata wich saves the JSON in the users home dir. It can be downloaded [here](https://github.com/Sammeeeeeeee/2omer/releases/tag/v3.0.1), but is still pre relase.
+> This relase is being recognised as a trojan by some antivirus's. Wokring assumption is this is because it is a python script fiddeling with APPDATA. You can now download a bata wich saves the JSON in the users home dir. It can be downloaded [here](https://github.com/Sammeeeeeeee/2omer/releases/tag/v3.0.1), but is still bata.
 
 ## [Version 2](https://github.com/Sammeeeeeeee/2omer/releases/tag/V2.0.0)
 
