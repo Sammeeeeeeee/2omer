@@ -1,7 +1,7 @@
 import sys
 import os
 import json
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy, QMessageBox
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase
 
@@ -125,6 +125,9 @@ class TimerApp(QWidget):
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
         tray_menu = QMenu(self)
+        clear_action = tray_menu.addAction("Clear Config")
+        clear_action.triggered.connect(self.clear_config)
+        tray_menu.addSeparator()
         exit_action = tray_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
         self.tray_icon.setContextMenu(tray_menu)
@@ -214,6 +217,17 @@ class TimerApp(QWidget):
         with open(SETTINGS_FILE, 'w') as file:
             json.dump(settings, file)
 
+    def clear_config(self):
+        reply = QMessageBox.question(self, 'Clear Configuration', 'Are you sure you want to clear the configuration?',
+                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            try:
+                os.remove(SETTINGS_FILE)
+                QMessageBox.information(self, 'Config Cleared', 'Configuration cleared successfully.', QMessageBox.Ok)
+            except FileNotFoundError:
+                QMessageBox.warning(self, 'Config Not Found', 'Configuration file not found.', QMessageBox.Ok)
+            except Exception as e:
+                QMessageBox.critical(self, 'Error', f'An error occurred: {str(e)}', QMessageBox.Ok)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
