@@ -47,7 +47,6 @@ The only version offering pop-up notifications instead of Windows's toast notifi
 This isn't designed to be installed. To be as simple as possible, just set it to auto-start and forget. However, we have not crossed out the option of creating an installer.
 
 ### Easy: Run the EXE
-
 Find the latest release [here](https://github.com/Sammeeeeeeee/2omer/releases "Releases"). Download and run.
 
 ### Run manually
