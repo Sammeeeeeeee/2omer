@@ -6,6 +6,9 @@ from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase
 from plyer import notification  # Importing notification from plyer module
 
+# Enable high DPI scaling
+QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+
 # Constants for application
 FONT_PATH = "C:/Windows/Fonts/segoeui.ttf"
 FONT_NAME = "Segoe UI Variable"
@@ -27,8 +30,6 @@ class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(APP_TITLE)
-        self.setGeometry(100, 100, APP_WIDTH, APP_HEIGHT)
-        self.setFixedSize(APP_WIDTH, APP_HEIGHT)
         self.load_font()
         self.init_period_values()
         self.timer = QTimer(self)
@@ -47,7 +48,7 @@ class TimerApp(QWidget):
                 self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
                 self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
         else:
-            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings where found. You can create a settings file in your root directory to save settings, or ignore to manualy configure settings and use defualts everytime')
+            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings where found. You can create to save settings, or ignore to choose everytime')
             reply.addButton('Create', QMessageBox.YesRole)
             reply.addButton('Ignore', QMessageBox.NoRole)
             button = reply.exec_()
@@ -72,7 +73,7 @@ class TimerApp(QWidget):
         self.setLayout(layout)
 
     def setup_period_display(self, layout):
-        self.period_label = self.create_label("<b>Click start to start!</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME, font_size=FONT_SIZE)
+        self.period_label = self.create_label("<b>Click to Start</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME, font_size=FONT_SIZE)
         layout.addWidget(self.period_label)
 
     def setup_time_input(self, layout):
@@ -245,10 +246,7 @@ class TimerApp(QWidget):
         if reply == QMessageBox.Yes:
             try:
                 os.remove(SETTINGS_FILE)
-                choice = QMessageBox.question(self, 'Config Cleared', 'Configuration cleared successfully. Do you want to close the application? If you do not, a new configuration file will be created next time you change values.', 
-                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if choice == QMessageBox.Yes:
-                    sys.exit()
+                QMessageBox.information(self, 'Config Cleared', 'Configuration cleared successfully.', QMessageBox.Ok)
             except FileNotFoundError:
                 QMessageBox.warning(self, 'Config Not Found', 'Configuration file not found.', QMessageBox.Ok)
             except Exception as e:
