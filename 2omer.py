@@ -3,8 +3,7 @@ import os
 import json
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy, QMessageBox
 from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QIcon, QFont, QFontDatabase
-from plyer import notification  # Importing notification from plyer module
+from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QScreen
 
 # Enable high DPI scaling
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -12,11 +11,10 @@ QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 # Constants for application
 FONT_PATH = "C:/Windows/Fonts/segoeui.ttf"
 FONT_NAME = "Segoe UI Variable"
-FONT_SIZE = 14
-ICON_PATH = "clock.png"
+ICON_PATH = "2omer_icon.ico"
 APP_TITLE = "2omer"
-APP_WIDTH = 450
-APP_HEIGHT = 250
+APP_WIDTH = 315
+APP_HEIGHT = 150
 DEFAULT_FOCUS_MINS = 20
 DEFAULT_FOCUS_SECS = 0
 DEFAULT_BREAK_MINS = 0
@@ -30,6 +28,7 @@ class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(APP_TITLE)
+        self.setWindowIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
         self.load_font()
         self.init_period_values()
         self.timer = QTimer(self)
@@ -38,6 +37,7 @@ class TimerApp(QWidget):
         self.setup_ui()
         self.add_system_tray_icon()
         self.is_timer_running = False
+        self.setFixedSize(APP_WIDTH, APP_HEIGHT)
 
     def init_period_values(self):
         if os.path.exists(SETTINGS_FILE):
@@ -73,7 +73,7 @@ class TimerApp(QWidget):
         self.setLayout(layout)
 
     def setup_period_display(self, layout):
-        self.period_label = self.create_label("<b>Click to Start</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME, font_size=FONT_SIZE)
+        self.period_label = self.create_label("<b>Click to Start</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME)
         layout.addWidget(self.period_label)
 
     def setup_time_input(self, layout):
@@ -104,13 +104,18 @@ class TimerApp(QWidget):
         button.clicked.connect(function)
         return button
 
-    def create_label(self, text, alignment=None, font_name=None, font_size=None):
+    def create_label(self, text, alignment=None, font_name=None):
         label = QLabel(text)
         if alignment:
             label.setAlignment(alignment)
-        if font_name and font_size:
-            label.setFont(QFont(font_name, font_size))
+        if font_name:
+            label.setFont(QFont(font_name, self.get_font_size()))
         return label
+
+    def get_font_size(self):
+        screen = QApplication.primaryScreen()
+        dpi = screen.logicalDotsPerInch()
+        return int((dpi / 96) * 14)  # Adjust the base font size (14) according to DPI
 
     def create_spinbox(self, value, suffix, min_value, max_value):
         spinbox = QSpinBox(self)
