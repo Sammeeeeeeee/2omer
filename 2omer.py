@@ -11,7 +11,7 @@ QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # Set the attribute
 # Constants for application
 FONT_PATH = "C:/Windows/Fonts/segoeui.ttf"  # Define the path to the font file.
 FONT_NAME = "Segoe UI Variable"  # Define the name of the font to be used.
-ICON_PATH = "2omer_icon.ico"  # Define the path to the application icon file.
+ICON_PATH = "clock.png"  # Define the path to the application icon file.
 APP_TITLE = "2omer"  # Define the title of the application.
 APP_WIDTH = 315  # Define the width of the application window.
 APP_HEIGHT = 150  # Define the height of the application window.
@@ -80,7 +80,7 @@ class TimerApp(QWidget):
 
     def setup_period_display(self, layout):
         """Set up the period display."""
-        self.period_label = self.create_label("<b>Click to Start</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME)  # Create a label for displaying the current period.
+        self.period_label = self.create_label("<b>Click start to begin</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME)  # Create a label for displaying the current period.
         layout.addWidget(self.period_label)  # Add the label to the layout.
 
     def setup_time_input(self, layout):
