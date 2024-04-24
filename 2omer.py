@@ -26,7 +26,7 @@ SETTINGS_FILE = os.path.expanduser("~/.timer_settings.json")
 class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"{APP_TITLE}: {DEFAULT_FOCUS_MINS:02}:{DEFAULT_FOCUS_SECS:02}")
+        self.setWindowTitle(APP_TITLE)
         self.setGeometry(100, 100, APP_WIDTH, APP_HEIGHT)
         self.setFixedSize(APP_WIDTH, APP_HEIGHT)
         self.load_font()
@@ -47,7 +47,7 @@ class TimerApp(QWidget):
                 self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
                 self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
         else:
-            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings where found. You can create to save settings, or ignore to choose everytime')
+            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings where found. You can create a settings file in your root directory to save settings, or ignore to manualy configure settings or use defualts everytime')
             reply.addButton('Create', QMessageBox.YesRole)
             reply.addButton('Ignore', QMessageBox.NoRole)
             button = reply.exec_()
@@ -58,7 +58,7 @@ class TimerApp(QWidget):
                 self.focus_seconds = DEFAULT_FOCUS_SECS
                 self.break_minutes = DEFAULT_BREAK_MINS
                 self.break_seconds = DEFAULT_BREAK_SECS
-        self.time_left = self.focus_minutes * 60 + self.focus_seconds
+        self.time_left = None
         self.is_focus_period = True
 
     def load_font(self):
@@ -72,7 +72,7 @@ class TimerApp(QWidget):
         self.setLayout(layout)
 
     def setup_period_display(self, layout):
-        self.period_label = self.create_label("", alignment=Qt.AlignCenter, font_name=FONT_NAME, font_size=FONT_SIZE)
+        self.period_label = self.create_label("<b>Click start to start!</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME, font_size=FONT_SIZE)
         layout.addWidget(self.period_label)
 
     def setup_time_input(self, layout):
@@ -182,9 +182,13 @@ class TimerApp(QWidget):
             self.update_timer_display()
 
     def update_timer_display(self):
-        self.setWindowTitle(f"{APP_TITLE}: {self.format_time(self.time_left)}")
-        period = "Focus Period" if self.is_focus_period else "Break Period"
-        self.period_label.setText(f"<b>{period}: {self.format_time(self.time_left)}</b>")
+        if self.time_left is not None:  # Check if time_left is set
+            self.setWindowTitle(f"{APP_TITLE}: {self.format_time(self.time_left)}")
+            period = "Focus Period" if self.is_focus_period else "Break Period"
+            self.period_label.setText(f"<b>{period}: {self.format_time(self.time_left)}</b>")
+        else:
+            self.setWindowTitle(APP_TITLE)  # Set default title
+            self.period_label.setText("<b>Click to Start</b>")  # Display "Click to Start" text
 
     def set_custom_times(self):
         self.focus_minutes = self.focus_minutes_spinbox.value()
@@ -208,7 +212,10 @@ class TimerApp(QWidget):
         notification.notify(title=APP_TITLE, message=message, app_name=APP_TITLE, timeout=5)
 
     def update_tooltip(self):
-        self.tray_icon.setToolTip(self.format_time(self.time_left))
+        if self.time_left is not None:  # Check if time_left is set
+            self.tray_icon.setToolTip(self.format_time(self.time_left))
+        else:
+            self.tray_icon.setToolTip(APP_TITLE)  # Set default tooltip
 
     def validate_input(self):
         if (self.focus_minutes_spinbox.value() == 0 and self.focus_seconds_spinbox.value() == 0) \
@@ -238,7 +245,10 @@ class TimerApp(QWidget):
         if reply == QMessageBox.Yes:
             try:
                 os.remove(SETTINGS_FILE)
-                QMessageBox.information(self, 'Config Cleared', 'Configuration cleared successfully.', QMessageBox.Ok)
+                choice = QMessageBox.question(self, 'Config Cleared', 'Configuration cleared successfully. Do you want to close the application?', 
+                                              QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if choice == QMessageBox.Yes:
+                    sys.exit()
             except FileNotFoundError:
                 QMessageBox.warning(self, 'Config Not Found', 'Configuration file not found.', QMessageBox.Ok)
             except Exception as e:
