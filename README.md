@@ -8,6 +8,16 @@
 
 Simple portable 20 20 20 timer / Pomodoro application, to help remind you to rest / relax when using your PC, built using PyQt5 in Python. You can customise a focus period and a break period durations. It features a countdown timer and notifies you when each period ends. Configuration can be saved (or not)
 
+
+## Usage
+![Screenshot 2024-04-24 032059](https://github.com/Sammeeeeeeee/2omer/assets/139072031/f1e1e60c-ac17-4699-8eb8-5cccc8834dcc)
+- Upon launching the application the first time, you will get the option to create a configuration file or not. If you do not, it will ask you every time (this is because it checks if the file exists, if not it offers).
+- You can set custom focus and break periods by entering durations in the provided input fields.
+- Click the "Start" button to begin the timer countdown.
+- You can pause the timer at any time by clicking the "Pause" button.
+- When a focus or break period ends, a notification alert will pop up, and the timer will automatically switch to the next period.
+- You can monitor time left in the system tray (V.2+)
+- You can clear the config from the system tray. If you clear the config, it will offer to close. If you do not close, it will recreate the config if you change the time. 
 --------------
 ## Versions
 
@@ -29,7 +39,6 @@ The only version offering pop up notifcations instead of Windows's toast notific
 ## Installation
 
 This isn't designed to be installed. To be as simple as possible, just set it to auto start and forget. However, we have not crossed out the option of creating an installer. 
-
 
 ### Easy: Run the EXE
 
@@ -55,15 +64,6 @@ Find the latest relase [here](https://github.com/Sammeeeeeeee/2omer/releases "Re
    python 2omer.py
    ```
 
-## Usage
-
-- Upon launching the application the first time, you will get the option to create a configuration file or not. If you do not, it will ask you every time (this is because it checks if the file exists, if not it offers).
-- You can set custom focus and break periods by entering durations in the provided input fields.
-- Click the "Start" button to begin the timer countdown.
-- You can pause the timer at any time by clicking the "Pause" button.
-- When a focus or break period ends, a notification alert will pop up, and the timer will automatically switch to the next period.
-- You can monitor time left in the system tray (V.2+)
-- You can clear the config from the system tray. If you clear the config, it will offer to close. If you do not close, it will recreate the config if you change the time. 
 
 ## Credits
 
