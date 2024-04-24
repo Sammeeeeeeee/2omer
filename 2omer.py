@@ -47,7 +47,7 @@ class TimerApp(QWidget):
                 self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
                 self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
         else:
-            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings where found. You can create a settings file in your root directory to save settings, or ignore to manualy configure settings or use defualts everytime')
+            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings where found. You can create a settings file in your root directory to save settings, or ignore to manualy configure settings and use defualts everytime')
             reply.addButton('Create', QMessageBox.YesRole)
             reply.addButton('Ignore', QMessageBox.NoRole)
             button = reply.exec_()
@@ -245,7 +245,7 @@ class TimerApp(QWidget):
         if reply == QMessageBox.Yes:
             try:
                 os.remove(SETTINGS_FILE)
-                choice = QMessageBox.question(self, 'Config Cleared', 'Configuration cleared successfully. Do you want to close the application?', 
+                choice = QMessageBox.question(self, 'Config Cleared', 'Configuration cleared successfully. Do you want to close the application? If you do not, a new configuration file will be created next time you change values.', 
                                               QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if choice == QMessageBox.Yes:
                     sys.exit()
