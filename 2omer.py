@@ -5,6 +5,7 @@ import json  # Importing the json module enables parsing and serializing JSON da
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy, QMessageBox, QSplashScreen  # Importing classes from PyQt5.QtWidgets module to create GUI applications.
 from PyQt5.QtCore import QTimer, Qt  # Importing classes from PyQt5.QtCore module for handling core functionality.
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap  # Importing classes from PyQt5.QtGui module for handling GUI elements.
+from plyer import notification
 
 # Enable high DPI scaling
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # Enabling high DPI scaling for better resolution on high DPI displays.
@@ -13,6 +14,7 @@ QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  # Enabling high DPI
 FONT_PATH = "C:/Windows/Fonts/segoeui.ttf"  # Path to the custom font file.
 FONT_NAME = "Segoe UI Variable"  # Name of the custom font.
 ICON_PATH = "clock.png"  # Path to the application icon file.
+ICON_PATH_ICO = "2omer_icon.ico" 
 SPLASH_PATH = "splash.png"  # Path to the splash screen image file.
 APP_TITLE = "2omer"  # Title of the application.
 APP_WIDTH = 315  # Width of the application window.
@@ -274,7 +276,7 @@ class TimerApp(QWidget):
         """Show a notification."""
         period = "Focus" if self.is_focus_period else "Break"  # Determine the current period.
         message = f"It's time for the {period} period."  # Compose the notification message.
-        QMessageBox.information(self, APP_TITLE, message, QMessageBox.Ok)  # Show the notification dialog.
+        notification.notify(title=APP_TITLE, message=message, app_icon=self.get_script_dir_path(ICON_PATH_ICO))
 
     # Method to update the tooltip for the system tray icon
     def update_tooltip(self):
