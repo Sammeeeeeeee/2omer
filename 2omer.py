@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushBut
 from PyQt5.QtCore import QTimer, Qt  
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap  
 from plyer import notification  
+import pyi_splash
 
 # Enable high DPI scaling
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  
@@ -222,18 +223,11 @@ class TimerApp(QWidget):
             self.time_left = self.break_minutes * 60 + self.break_seconds  
 
     def show_notification(self):
-        period = "Focus" if self.is_focus_period else "Break"  
-        message = f"It's time for the {period} period."  
-        
-        try:
-            notification.notify(
-                title=APP_TITLE,
-                message=message,
-                app_icon=self.get_script_dir_path(ICON_PATH),
-                timeout=10  # Adjust timeout as needed
-            )
-        except Exception as e:
-            print("Notification Error:", e)
+        notification_title = "2omer"  # Notification title
+        period = "break" if self.is_focus_period else "focus period"  # Determining period for notification
+        notification_text = f"It's time for a {period}"  # Notification text
+        self.tray_icon.showMessage(notification_title, notification_text)  # Showing notification in system tray
+
 
     def update_tooltip(self):
         if self.time_left is not None:  
@@ -278,5 +272,6 @@ class TimerApp(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)  
-    timer_app = TimerApp()  
+    timer_app = TimerApp() 
+    pyi_splash.close()  
     sys.exit(app.exec_())  
