@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushBut
 from PyQt5.QtCore import QTimer, Qt  
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap  
 from plyer import notification  
-import pyi_splash
 
 # Enable high DPI scaling
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)  
@@ -272,6 +271,5 @@ class TimerApp(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)  
-    timer_app = TimerApp() 
-    pyi_splash.close()  
-    sys.exit(app.exec_())  
+    timer_app = TimerApp()  
+    sys.exit(app.exec_())
