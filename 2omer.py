@@ -1,7 +1,11 @@
 import sys
 import os
 import json
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox, QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy, QMessageBox, QSplashScreen, QAction
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QLabel, QVBoxLayout, QPushButton, QSpinBox,
+    QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy, QMessageBox,
+    QSplashScreen, QAction
+)
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap
 from plyer import notification
@@ -24,6 +28,7 @@ TIMER_INTERVAL = 1000
 SPINBOX_WIDTH = 60
 SETTINGS_FILE = os.path.expanduser("~/.timer_settings.json")
 
+
 class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -31,11 +36,13 @@ class TimerApp(QWidget):
         self.setWindowIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
         self.load_font()
         self.init_period_values()
+        self.setup_ui()
+        self.add_system_tray_icon()
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_timer)
         self.timer.timeout.connect(self.update_tooltip)
-        self.setup_ui()
-        self.add_system_tray_icon()
+        
         self.is_timer_running = False
         self.setFixedSize(APP_WIDTH, APP_HEIGHT)
 
@@ -60,17 +67,18 @@ class TimerApp(QWidget):
                 self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
                 self.auto_start = settings.get('auto_start', False)
         else:
-            reply = QMessageBox(QMessageBox.Question, 'No existing settings', 'No existing settings were found. You can create to save settings, or ignore to choose every time')
-            reply.addButton('Create', QMessageBox.YesRole)
-            reply.addButton('Ignore', QMessageBox.NoRole)
-            button = reply.exec_()
-            if button == QMessageBox.No:
+            reply = QMessageBox.question(
+                self, 'No existing settings found',
+                '<b>No existing settings file was found.</b>. Create settings file? This will create a file in your home directory to store prefrences between runs.',
+                QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            )
+            if reply == QMessageBox.No:
                 sys.exit()
-            else:
-                self.focus_minutes = DEFAULT_FOCUS_MINS
-                self.focus_seconds = DEFAULT_FOCUS_SECS
-                self.break_minutes = DEFAULT_BREAK_MINS
-                self.break_seconds = DEFAULT_BREAK_SECS
+            self.focus_minutes = DEFAULT_FOCUS_MINS
+            self.focus_seconds = DEFAULT_FOCUS_SECS
+            self.break_minutes = DEFAULT_BREAK_MINS
+            self.break_seconds = DEFAULT_BREAK_SECS
+        
         self.time_left = None
         self.is_focus_period = True
 
@@ -98,10 +106,10 @@ class TimerApp(QWidget):
 
     def create_period_layout(self, layout, row, minutes, seconds):
         period_layout = QHBoxLayout()
-        minutes_spinbox = self.create_spinbox(minutes, "", 0, 59)
+        minutes_spinbox = self.create_spinbox(minutes)
         period_layout.addWidget(minutes_spinbox)
         period_layout.addWidget(self.create_label("minutes"), alignment=Qt.AlignLeft)
-        seconds_spinbox = self.create_spinbox(seconds, "", 0, 59)
+        seconds_spinbox = self.create_spinbox(seconds)
         layout.addLayout(period_layout, row, 1)
         layout.addWidget(seconds_spinbox, row, 2, alignment=Qt.AlignRight)
         layout.addWidget(self.create_label("seconds"), row, 3, alignment=Qt.AlignLeft)
@@ -129,13 +137,10 @@ class TimerApp(QWidget):
         dpi = screen.logicalDotsPerInch()
         return int((dpi / 96) * 14)
 
-    def create_spinbox(self, value, suffix, min_value, max_value):
+    def create_spinbox(self, value):
         spinbox = QSpinBox(self)
-        spinbox.setSuffix(suffix)
-        spinbox.setRange(min_value, max_value)
+        spinbox.setRange(0, 59)
         spinbox.setValue(value)
-        spinbox.setFocusPolicy(Qt.StrongFocus)
-        spinbox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         spinbox.setFixedWidth(SPINBOX_WIDTH)
         spinbox.setStyleSheet("QSpinBox { padding: 5px; border: 1px solid #d4d4d4; border-radius: 5px; background-color: #f0f0f0; }")
         spinbox.valueChanged.connect(self.validate_input)
@@ -163,8 +168,7 @@ class TimerApp(QWidget):
         self.setWindowIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
 
     def get_script_dir_path(self, filename):
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(script_dir, filename)
+        return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
 
     def control_timer(self):
         if self.is_timer_running:
@@ -203,8 +207,7 @@ class TimerApp(QWidget):
             self.switch_period()
             self.set_period_time()
             self.timer.start(TIMER_INTERVAL)
-        else:
-            self.update_timer_display()
+        self.update_timer_display()
 
     def update_timer_display(self):
         if self.time_left is not None:
@@ -226,33 +229,22 @@ class TimerApp(QWidget):
         self.set_period_time()
 
     def set_period_time(self):
-        if self.is_focus_period:
-            self.time_left = self.focus_minutes * 60 + self.focus_seconds
-        else:
-            self.time_left = self.break_minutes * 60 + self.break_seconds
+        self.time_left = (self.focus_minutes * 60 + self.focus_seconds) if self.is_focus_period else (self.break_minutes * 60 + self.break_seconds)
 
     def show_notification(self):
-        notification_title = "2omer"  # Notification title
-        period = "break" if self.is_focus_period else "focus period"  # Determining period for notification
-        notification_text = f"It's time for a {period}"  # Notification text
-        self.tray_icon.showMessage(notification_title, notification_text)  # Showing notification in system tray
+        period = "break" if self.is_focus_period else "focus period"
+        self.tray_icon.showMessage("2omer", f"It's time for a {period}")
 
     def update_tooltip(self):
-        if self.time_left is not None:
-            self.tray_icon.setToolTip(self.format_time(self.time_left))
-        else:
-            self.tray_icon.setToolTip(APP_TITLE)
+        self.tray_icon.setToolTip(self.format_time(self.time_left) if self.time_left is not None else APP_TITLE)
 
     def validate_input(self):
-        if (self.focus_minutes_spinbox.value() == 0 and self.focus_seconds_spinbox.value() == 0) \
-                or (self.break_minutes_spinbox.value() == 0 and self.break_seconds_spinbox.value() == 0):
-            self.control_button.setEnabled(False)
-        else:
-            self.control_button.setEnabled(True)
+        focus_time = self.focus_minutes_spinbox.value() + self.focus_seconds_spinbox.value()
+        break_time = self.break_minutes_spinbox.value() + self.break_seconds_spinbox.value()
+        self.control_button.setEnabled(focus_time > 0 and break_time > 0)
 
     def format_time(self, seconds):
-        minutes = seconds // 60
-        seconds = seconds % 60
+        minutes, seconds = divmod(seconds, 60)
         return f"{minutes:02}:{seconds:02}"
 
     def save_settings(self):
@@ -261,14 +253,17 @@ class TimerApp(QWidget):
             'focus_seconds': self.focus_seconds,
             'break_minutes': self.break_minutes,
             'break_seconds': self.break_seconds,
-            'auto_start': self.auto_start_action.isChecked()  # Save auto-start preference
+            'auto_start': self.auto_start_action.isChecked()
         }
         with open(SETTINGS_FILE, 'w') as file:
             json.dump(settings, file)
 
     def clear_config(self):
-        reply = QMessageBox.question(self, 'Clear Configuration', 'Are you sure you want to clear the configuration?',
-                                     QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        reply = QMessageBox.question(
+            self, 'Clear Configuration',
+            'Are you sure you want to clear the configuration?',
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
         if reply == QMessageBox.Yes:
             try:
                 os.remove(SETTINGS_FILE)
@@ -281,6 +276,7 @@ class TimerApp(QWidget):
     def toggle_auto_start(self):
         self.auto_start = self.auto_start_action.isChecked()
         self.save_settings()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
