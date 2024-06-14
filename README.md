@@ -30,11 +30,19 @@ You can customize focus period and break period durations. It features a countdo
 - When a focus or break period ends, you will get a notification, and the timer will automatically switch to the next period.
 - You can monitor time left in the system tray.
 - You can clear the config from the system tray as well. 
+- You can set it to autostart from the tray
+> [!TIP]
+> ### Autostart
+> Setting it to autostart does not set it to start at startup. It just makes the timer start as soon as it is luanched. You will still have to manually add it to startup - see below.
 
 ## Installation
-This isn't designed to be installed. To keep it simple, just set it to auto-start and forget about it. However, we haven't ruled out the option of creating an installer. You can add it to your startup by:
-- Press Windows logo key  + R, type shell:startup, then select OK.
-- Add a shortcut to 2omer. 
+
+This isn't designed to be installed. To keep it simple, just set it to auto-start and forget about it. However, haven't ruled out the option of creating an installer. 
+You can add it to your startup by:
+1. Press Windows logo key + R
+2. type `shell:startup`, then select OK.
+3. Add a shortcut to where you store 2omer. 
+
 
 ### Easy: Run the EXE
 Find the latest release [here](https://github.com/Sammeeeeeeee/2omer/releases "Releases"). Download and run.
@@ -42,7 +50,7 @@ Find the latest release [here](https://github.com/Sammeeeeeeee/2omer/releases "R
 ### Run manually
 
 1. Ensure you have Python and git installed on your system.
-2. Install the PyQt5 library using pip:
+2. Install the libraries using pip:
    ```
    pip install PyQt5
    pip install plyer
