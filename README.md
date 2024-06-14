@@ -2,8 +2,8 @@
 Customizable 20/20/20 timer, written in Python, using PyQt5 with a focus on reliability and user experience.
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/release/Sammeeeeeeee/20omer" alt="GitHub Release">  
-  <img src="https://img.shields.io/github/release-date/Sammeeeeeeee/20omer" alt="GitHub Release Date">
+  <img src="https://img.shields.io/github/v/release/Sammeeeeeeee/2omer" alt="GitHub Release">  
+  <img src="https://img.shields.io/github/release-date/Sammeeeeeeee/2omer" alt="GitHub Release Date">
 </p>
 
 <p align="center">
@@ -13,7 +13,7 @@ Customizable 20/20/20 timer, written in Python, using PyQt5 with a focus on reli
 
 <p align="center">
   <img src="https://img.shields.io/badge/Made%20with-PyQt5-orange?style=for-the-badge&logo=python" alt="Made with PyQt5">
-  <img src="https://img.shields.io/github/license/Sammeeeeeeee/20omer?style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/github/license/Sammeeeeeeee/2omer?style=for-the-badge" alt="License">
 </p>
 
 ## 20omer Timer App
@@ -22,7 +22,7 @@ A simple and portable [20-20-20](https://www.rnib.org.uk/your-eyes/how-to-keep-y
 You can customize focus period and break period durations. It features a countdown timer and notifies you when each period ends. Configuration can be saved (or not).
 
 ## Usage
-![Screenshot](https://github.com/Sammeeeeeeee/20omer/assets/139072031/f1e1e60c-ac17-4699-8eb8-5cccc8834dcc)
+![Screenshot](https://github.com/Sammeeeeeeee/2omer/assets/139072031/f1e1e60c-ac17-4699-8eb8-5cccc8834dcc)
 - Upon launching the application for the first time, you will get the option to create a configuration file or not. If you do not, it will ask you every time (this is because it checks if the file exists, and if not, it offers). It saves the file in your user's home directory. 
 - You can set custom focus and break periods by entering durations into the input fields.
 - Click the "Start" button to begin the timer countdown.
