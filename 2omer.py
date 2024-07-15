@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap
-from plyer import notification
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
@@ -42,7 +41,7 @@ class TimerApp(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_timer)
         self.timer.timeout.connect(self.update_tooltip)
-        
+
         self.is_timer_running = False
         self.setFixedSize(APP_WIDTH, APP_HEIGHT)
 
@@ -66,10 +65,11 @@ class TimerApp(QWidget):
                 self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
                 self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
                 self.auto_start = settings.get('auto_start', False)
+                self.dark_mode = settings.get('dark_mode', False)
         else:
             reply = QMessageBox.question(
                 self, 'No existing settings found',
-                '<b>No existing settings file was found.</b>. Create settings file? This will create a file in your home directory to store prefrences between runs.',
+                '<b>No existing settings file was found.</b>. Create settings file? This will create a file in your home directory to store preferences between runs.',
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             )
             if reply == QMessageBox.No:
@@ -78,7 +78,8 @@ class TimerApp(QWidget):
             self.focus_seconds = DEFAULT_FOCUS_SECS
             self.break_minutes = DEFAULT_BREAK_MINS
             self.break_seconds = DEFAULT_BREAK_SECS
-        
+            self.dark_mode = False
+
         self.time_left = None
         self.is_focus_period = True
 
@@ -91,6 +92,8 @@ class TimerApp(QWidget):
         self.setup_time_input(layout)
         self.setup_buttons(layout)
         self.setLayout(layout)
+        if self.dark_mode:
+            self.apply_dark_mode()
 
     def setup_period_display(self, layout):
         self.period_label = self.create_label("<b>Click start to begin</b>", alignment=Qt.AlignCenter, font_name=FONT_NAME)
@@ -116,13 +119,10 @@ class TimerApp(QWidget):
         return minutes_spinbox, seconds_spinbox
 
     def setup_buttons(self, layout):
-        self.control_button = self.create_button("Start", self.control_timer)
+        self.control_button = QPushButton("Start", self)
+        self.control_button.clicked.connect(self.control_timer)
+        self.control_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         layout.addWidget(self.control_button)
-
-    def create_button(self, title, function):
-        button = QPushButton(title, self)
-        button.clicked.connect(function)
-        return button
 
     def create_label(self, text, alignment=None, font_name=None):
         label = QLabel(text)
@@ -142,7 +142,7 @@ class TimerApp(QWidget):
         spinbox.setRange(0, 59)
         spinbox.setValue(value)
         spinbox.setFixedWidth(SPINBOX_WIDTH)
-        spinbox.setStyleSheet("QSpinBox { padding: 5px; border: 1px solid #d4d4d4; border-radius: 5px; background-color: #f0f0f0; }")
+        spinbox.setStyleSheet("QSpinBox { padding: 5px; border: 1px solid #d4d4d4; border-radius: 5px; }")
         spinbox.valueChanged.connect(self.validate_input)
         return spinbox
 
@@ -153,12 +153,17 @@ class TimerApp(QWidget):
         clear_action = tray_menu.addAction("Clear Config")
         clear_action.triggered.connect(self.clear_config)
         tray_menu.addSeparator()
-        
+
         self.auto_start_action = QAction("Auto Start", self, checkable=True)
         self.auto_start_action.setChecked(self.auto_start)
         self.auto_start_action.triggered.connect(self.toggle_auto_start)
         tray_menu.addAction(self.auto_start_action)
-        
+
+        self.dark_mode_action = QAction("Dark Mode", self, checkable=True)
+        self.dark_mode_action.setChecked(self.dark_mode)
+        self.dark_mode_action.triggered.connect(self.toggle_dark_mode)
+        tray_menu.addAction(self.dark_mode_action)
+
         tray_menu.addSeparator()
         exit_action = tray_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
@@ -215,8 +220,7 @@ class TimerApp(QWidget):
             period = "Focus Period" if self.is_focus_period else "Break Period"
             self.period_label.setText(f"<b>{period}: {self.format_time(self.time_left)}</b>")
         else:
-            self.setWindowTitle(APP_TITLE)
-            self.period_label.setText("<b>Click to Start</b>")
+            self.period_label.setText("<b>Click start to begin</b>")
 
     def set_custom_times(self):
         self.focus_minutes = self.focus_minutes_spinbox.value()
@@ -253,7 +257,8 @@ class TimerApp(QWidget):
             'focus_seconds': self.focus_seconds,
             'break_minutes': self.break_minutes,
             'break_seconds': self.break_seconds,
-            'auto_start': self.auto_start_action.isChecked()
+            'auto_start': self.auto_start_action.isChecked(),
+            'dark_mode': self.dark_mode_action.isChecked()
         }
         with open(SETTINGS_FILE, 'w') as file:
             json.dump(settings, file)
@@ -276,6 +281,88 @@ class TimerApp(QWidget):
     def toggle_auto_start(self):
         self.auto_start = self.auto_start_action.isChecked()
         self.save_settings()
+
+    def toggle_dark_mode(self):
+        self.dark_mode = self.dark_mode_action.isChecked()
+        if self.dark_mode:
+            self.apply_dark_mode()
+        else:
+            self.remove_dark_mode()
+        self.save_settings()
+
+    def apply_dark_mode(self):
+        dark_mode_style = """
+        QWidget {
+            background-color: #2e2e2e;
+            color: #f0f0f0;
+        }
+        QLabel {
+            color: #f0f0f0;
+        }
+        QPushButton {
+            background-color: #444444;
+            color: #f0f0f0;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: #666666;
+        }
+        QPushButton:pressed {
+            background-color: #888888;
+        }
+        QSpinBox {
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #555555;
+            border-radius: 5px;
+        }
+        QMenu {
+            background-color: #444444;
+            color: #f0f0f0;
+            border: 1px solid #555555;
+        }
+        QMenu::item::selected {
+            background-color: #555555;
+        }
+        """
+        self.setStyleSheet(dark_mode_style)
+
+    def remove_dark_mode(self):
+        light_mode_style = """
+        QWidget {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        QLabel {
+            color: #000000;
+        }
+        QPushButton {
+            background-color: #dcdcdc;
+            color: #000000;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: #c0c0c0;
+        }
+        QPushButton:pressed {
+            background-color: #a0a0a0;
+        }
+        QSpinBox {
+            background-color: #ffffff;
+            color: #000000;
+            border: 1px solid #d4d4d4;
+            border-radius: 5px;
+        }
+        QMenu {
+            background-color: #f0f0f0;
+            color: #000000;
+            border: 1px solid #d4d4d4;
+        }
+        QMenu::item::selected {
+            background-color: #dcdcdc;
+        }
+        """
+        self.setStyleSheet(light_mode_style)
 
 
 if __name__ == "__main__":
