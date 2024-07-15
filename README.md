@@ -1,4 +1,4 @@
-# 2omer
+# 2omer ![Screenshot](https://github.com/Sammeeeeeeee/2omer/blob/main/clock.png?raw=true)
 Customizable 20/20/20 timer, written in Python, using PyQt5 with a focus on reliability and user experience.
 
 <p align="center">
@@ -49,11 +49,10 @@ Find the latest release [here](https://github.com/Sammeeeeeeee/2omer/releases "R
 
 ### Run manually
 
-1. Ensure you have Python and git installed on your system.
+1. Ensure you have [Python](https://www.python.org/downloads/) and [git](https://git-scm.com/downloads) installed on your system.
 2. Install the libraries using pip:
    ```
-   pip install PyQt5
-   pip install plyer
+   pip install PyQt5 plyer
    ```
 3. Clone this repository:
    ```
@@ -70,4 +69,4 @@ Find the latest release [here](https://github.com/Sammeeeeeeee/2omer/releases "R
 
 ## Credits
 
-<a href="https://www.flaticon.com/free-icons/time-and-date" title="Time Icon" a>
+* [Icon](https://www.flaticon.com/free-icons/time-and-date)
