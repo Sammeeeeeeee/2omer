@@ -59,6 +59,7 @@ class TimerApp(QWidget):
 
     def init_period_values(self):
         self.auto_start = False
+        self.minimize_notification_shown = False
         if os.path.exists(SETTINGS_FILE):
             with open(SETTINGS_FILE, 'r') as file:
                 settings = json.load(file)
@@ -67,6 +68,7 @@ class TimerApp(QWidget):
                 self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
                 self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
                 self.auto_start = settings.get('auto_start', False)
+                self.minimize_notification_shown = settings.get('minimize_notification_shown', False)
         else:
             reply = QMessageBox.question(
                 self, 'No existing settings found',
@@ -181,7 +183,10 @@ class TimerApp(QWidget):
         if self.minimize_to_tray:
             event.ignore()  # Ignore the close event
             self.hide()  # Hide the window
-            self.tray_icon.showMessage("2omer", "The application is minimized to the tray.", QSystemTrayIcon.Information, 2000)
+            if not self.minimize_notification_shown:
+                self.tray_icon.showMessage("2omer", "The application is minimized to the tray.", QSystemTrayIcon.Information, 2000)
+                self.minimize_notification_shown = True
+            self.save_settings()
         else:
             event.accept()  # Accept the event to actually close the application
 
@@ -277,7 +282,8 @@ class TimerApp(QWidget):
             'focus_seconds': self.focus_seconds,
             'break_minutes': self.break_minutes,
             'break_seconds': self.break_seconds,
-            'auto_start': self.auto_start_action.isChecked()
+            'auto_start': self.auto_start_action.isChecked(),
+            'minimize_notification_shown': self.minimize_notification_shown
         }
         with open(SETTINGS_FILE, 'w') as file:
             json.dump(settings, file)
@@ -305,8 +311,7 @@ class TimerApp(QWidget):
         self.minimize_to_tray = False
         self.close()
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     timer_app = TimerApp()
     sys.exit(app.exec_())
