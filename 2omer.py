@@ -8,7 +8,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap
-from plyer import notification
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
@@ -160,12 +159,12 @@ class TimerApp(QWidget):
         self.auto_start_action.setChecked(self.auto_start)
         self.auto_start_action.triggered.connect(self.toggle_auto_start)
         tray_menu.addAction(self.auto_start_action)
-        
         tray_menu.addSeparator()
-        restore_action = tray_menu.addAction("Open")
-        restore_action.triggered.connect(self.restore_window)
-        tray_menu.addSeparator()
-        exit_action = tray_menu.addAction("Exit")
+        self.restore_action = QAction("Show", self, checkable=True)
+        self.restore_action.triggered.connect(self.restore_window)
+        tray_menu.addAction(self.restore_action)
+
+        exit_action = tray_menu.addAction("Quit")
         exit_action.triggered.connect(self.exit_application)
         self.tray_icon.setContextMenu(tray_menu)
         
@@ -183,12 +182,21 @@ class TimerApp(QWidget):
         if self.minimize_to_tray:
             event.ignore()  # Ignore the close event
             self.hide()  # Hide the window
+            self.restore_action.setChecked(False)  # Untick the "Show" action
             if not self.minimize_notification_shown:
                 self.tray_icon.showMessage("2omer", "The application is minimized to the tray.", QSystemTrayIcon.Information, 2000)
                 self.minimize_notification_shown = True
             self.save_settings()
         else:
             event.accept()  # Accept the event to actually close the application
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self.restore_action.setChecked(True)  # Tick the "Show" action
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        self.restore_action.setChecked(False)  # Untick the "Show" action
 
     def restore_window(self):
         self.show()  # Show the main window
