@@ -38,6 +38,15 @@ class AnimatedSplashScreen(QSplashScreen):
         self.movie.frameChanged.connect(self.repaint)
         self.movie.start()
         self.setFixedSize(SPLASH_WIDTH, SPLASH_HEIGHT)
+        self.center_on_screen()
+
+    def center_on_screen(self):
+        screen = QApplication.primaryScreen().geometry()
+        size = self.geometry()
+        self.move(
+            (screen.width() - size.width()) // 2,
+            (screen.height() - size.height()) // 2
+        )
 
     def paintEvent(self, event):
         painter = QPainter(self)
