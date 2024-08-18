@@ -49,6 +49,8 @@ class TimerApp(QWidget):
         self.splash.show()
         QTimer.singleShot(1000, self.show_main_window)
 
+        self.minimize_to_tray = True  # Flag to control minimize vs exit
+
     def show_main_window(self):
         self.splash.close()
         self.show()
@@ -68,7 +70,7 @@ class TimerApp(QWidget):
         else:
             reply = QMessageBox.question(
                 self, 'No existing settings found',
-                '<b>No existing settings file was found.</b>. Create settings file? This will create a file in your home directory to store preferences between runs.',
+                '<b>No existing settings file was found.</b> Create settings file? This will create a file in your home directory to store preferences between runs.',
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             )
             if reply == QMessageBox.No:
@@ -151,7 +153,6 @@ class TimerApp(QWidget):
         tray_menu = QMenu(self)
         clear_action = tray_menu.addAction("Clear Config")
         clear_action.triggered.connect(self.clear_config)
-        tray_menu.addSeparator()
         
         self.auto_start_action = QAction("Auto Start", self, checkable=True)
         self.auto_start_action.setChecked(self.auto_start)
@@ -159,12 +160,16 @@ class TimerApp(QWidget):
         tray_menu.addAction(self.auto_start_action)
         
         tray_menu.addSeparator()
-        restore_action = tray_menu.addAction("Restore")
+        restore_action = tray_menu.addAction("Open")
         restore_action.triggered.connect(self.restore_window)
         tray_menu.addSeparator()
         exit_action = tray_menu.addAction("Exit")
-        exit_action.triggered.connect(self.close)
+        exit_action.triggered.connect(self.exit_application)
         self.tray_icon.setContextMenu(tray_menu)
+        
+        # Connect the double-click activation signal
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+        
         self.update_tooltip()
         self.tray_icon.show()
         self.setWindowIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
@@ -173,15 +178,21 @@ class TimerApp(QWidget):
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
 
     def closeEvent(self, event):
-        # Override closeEvent to minimize to tray
-        event.ignore()  # Ignore the close event
-        self.hide()  # Hide the window
-        self.tray_icon.showMessage("2omer", "The application is minimized to the tray.", QSystemTrayIcon.Information, 2000)
+        if self.minimize_to_tray:
+            event.ignore()  # Ignore the close event
+            self.hide()  # Hide the window
+            self.tray_icon.showMessage("2omer", "The application is minimized to the tray.", QSystemTrayIcon.Information, 2000)
+        else:
+            event.accept()  # Accept the event to actually close the application
 
     def restore_window(self):
         self.show()  # Show the main window
         self.raise_()  # Bring the window to the foreground
         self.activateWindow()  # Make sure the window gets focus
+
+    def on_tray_icon_activated(self, reason):
+        if reason == QSystemTrayIcon.DoubleClick:
+            self.restore_window()
 
     def control_timer(self):
         if self.is_timer_running:
@@ -289,6 +300,11 @@ class TimerApp(QWidget):
     def toggle_auto_start(self):
         self.auto_start = self.auto_start_action.isChecked()
         self.save_settings()
+
+    def exit_application(self):
+        self.minimize_to_tray = False
+        self.close()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
