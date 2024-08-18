@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import (
     QSystemTrayIcon, QMenu, QGridLayout, QHBoxLayout, QSizePolicy, QMessageBox,
     QSplashScreen, QAction
 )
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap
+from PyQt5.QtCore import QTimer, Qt, QSize
+from PyQt5.QtGui import QIcon, QFont, QFontDatabase, QPixmap, QMovie, QPainter
 from plyer import notification
 
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
@@ -16,7 +16,7 @@ FONT_PATH = "C:/Windows/Fonts/segoeui.ttf"
 FONT_NAME = "Segoe UI Variable"
 ICON_PATH = "clock.png"
 ICO_PATH = "2omer_icon.ico"
-SPLASH_PATH = "splash.png"
+SPLASH_PATH = "splash.gif"
 APP_TITLE = "2omer"
 APP_WIDTH = 315
 APP_HEIGHT = 150
@@ -27,7 +27,26 @@ DEFAULT_BREAK_SECS = 20
 TIMER_INTERVAL = 1000
 SPINBOX_WIDTH = 60
 SETTINGS_FILE = os.path.expanduser("~/.timer_settings.json")
+SPLASH_WIDTH = 400  
+SPLASH_HEIGHT = 300  
 
+class AnimatedSplashScreen(QSplashScreen):
+    def __init__(self, animation, flags):
+        super(AnimatedSplashScreen, self).__init__(QPixmap(), flags)
+        self.movie = QMovie(animation)
+        self.movie.setScaledSize(QSize(SPLASH_WIDTH, SPLASH_HEIGHT))
+        self.movie.frameChanged.connect(self.repaint)
+        self.movie.start()
+        self.setFixedSize(SPLASH_WIDTH, SPLASH_HEIGHT)
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        pixmap = self.movie.currentPixmap()
+        scaled_pixmap = pixmap.scaled(self.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        painter.drawPixmap(self.rect(), scaled_pixmap)
+
+    def sizeHint(self):
+        return QSize(SPLASH_WIDTH, SPLASH_HEIGHT)
 
 class TimerApp(QWidget):
     def __init__(self):
@@ -42,22 +61,26 @@ class TimerApp(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_timer)
         self.timer.timeout.connect(self.update_tooltip)
-        
+
         self.is_timer_running = False
         self.setFixedSize(APP_WIDTH, APP_HEIGHT)
 
-        self.splash = QSplashScreen(QPixmap(self.get_script_dir_path(SPLASH_PATH)))
+        self.splash = AnimatedSplashScreen(self.get_script_dir_path(SPLASH_PATH), Qt.WindowStaysOnTopHint)
         self.splash.show()
-        QTimer.singleShot(1000, self.show_main_window)
+        QTimer.singleShot(2000, self.show_main_window)  
 
     def show_main_window(self):
         self.splash.close()
         self.show()
+        self.update_tray_menu()  
         if self.auto_start:
             self.start_timer()
 
     def init_period_values(self):
         self.auto_start = False
+        self.minimize_notification_shown = False
+        self.minimize_to_tray = True  # Default to minimize to tray
+
         if os.path.exists(SETTINGS_FILE):
             with open(SETTINGS_FILE, 'r') as file:
                 settings = json.load(file)
@@ -66,10 +89,11 @@ class TimerApp(QWidget):
                 self.break_minutes = settings.get('break_minutes', DEFAULT_BREAK_MINS)
                 self.break_seconds = settings.get('break_seconds', DEFAULT_BREAK_SECS)
                 self.auto_start = settings.get('auto_start', False)
+                self.minimize_notification_shown = settings.get('minimize_notification_shown', False)
         else:
             reply = QMessageBox.question(
                 self, 'No existing settings found',
-                '<b>No existing settings file was found.</b>. Create settings file? This will create a file in your home directory to store prefrences between runs.',
+                '<b>No existing settings file was found.</b> Create settings file? This will create a file in your home directory to store preferences between runs.',
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             )
             if reply == QMessageBox.No:
@@ -78,7 +102,7 @@ class TimerApp(QWidget):
             self.focus_seconds = DEFAULT_FOCUS_SECS
             self.break_minutes = DEFAULT_BREAK_MINS
             self.break_seconds = DEFAULT_BREAK_SECS
-        
+
         self.time_left = None
         self.is_focus_period = True
 
@@ -150,25 +174,59 @@ class TimerApp(QWidget):
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
         tray_menu = QMenu(self)
-        clear_action = tray_menu.addAction("Clear Config")
-        clear_action.triggered.connect(self.clear_config)
-        tray_menu.addSeparator()
-        
+        self.clear_action = tray_menu.addAction("Clear Config")
+        self.clear_action.triggered.connect(self.clear_config)
+
         self.auto_start_action = QAction("Auto Start", self, checkable=True)
         self.auto_start_action.setChecked(self.auto_start)
         self.auto_start_action.triggered.connect(self.toggle_auto_start)
         tray_menu.addAction(self.auto_start_action)
-        
         tray_menu.addSeparator()
-        exit_action = tray_menu.addAction("Exit")
-        exit_action.triggered.connect(self.close)
+        self.restore_action = QAction("Show", self, checkable=True)
+        self.restore_action.triggered.connect(self.restore_window)
+        tray_menu.addAction(self.restore_action)
+        tray_menu.addSeparator()
+        exit_action = tray_menu.addAction("Quit")
+        exit_action.triggered.connect(self.exit_application)
         self.tray_icon.setContextMenu(tray_menu)
+
+        # Connect the double-click activation signal
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+
         self.update_tooltip()
         self.tray_icon.show()
         self.setWindowIcon(QIcon(self.get_script_dir_path(ICON_PATH)))
 
+    def update_tray_menu(self):
+        if self.isVisible():
+            self.restore_action.setChecked(True)
+        else:
+            self.restore_action.setChecked(False)
+
     def get_script_dir_path(self, filename):
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+
+    def closeEvent(self, event):
+        if self.minimize_to_tray:
+            event.ignore()  # Ignore the close event
+            self.hide()  # Hide the window
+            if not self.minimize_notification_shown:
+                self.tray_icon.showMessage("2omer", "The application is minimized to the tray.", QSystemTrayIcon.Information, 2000)
+                self.minimize_notification_shown = True
+            self.save_settings()
+            self.update_tray_menu()
+        else:
+            event.accept()  # Accept the event to actually close the application
+
+    def restore_window(self):
+        self.show()  # Show the main window
+        self.raise_()  # Bring the window to the foreground
+        self.activateWindow()  # Make sure the window gets focus
+        self.update_tray_menu()
+
+    def on_tray_icon_activated(self, reason):
+        if reason == QSystemTrayIcon.DoubleClick:
+            self.restore_window()
 
     def control_timer(self):
         if self.is_timer_running:
@@ -253,7 +311,8 @@ class TimerApp(QWidget):
             'focus_seconds': self.focus_seconds,
             'break_minutes': self.break_minutes,
             'break_seconds': self.break_seconds,
-            'auto_start': self.auto_start_action.isChecked()
+            'auto_start': self.auto_start_action.isChecked(),
+            'minimize_notification_shown': self.minimize_notification_shown
         }
         with open(SETTINGS_FILE, 'w') as file:
             json.dump(settings, file)
@@ -277,8 +336,13 @@ class TimerApp(QWidget):
         self.auto_start = self.auto_start_action.isChecked()
         self.save_settings()
 
+    def exit_application(self):
+        self.minimize_to_tray = False
+        self.close()
 
-if __name__ == "__main__":
+
+
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     timer_app = TimerApp()
     sys.exit(app.exec_())
