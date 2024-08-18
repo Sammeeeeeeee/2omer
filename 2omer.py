@@ -28,7 +28,6 @@ TIMER_INTERVAL = 1000
 SPINBOX_WIDTH = 60
 SETTINGS_FILE = os.path.expanduser("~/.timer_settings.json")
 
-
 class TimerApp(QWidget):
     def __init__(self):
         super().__init__()
@@ -69,7 +68,7 @@ class TimerApp(QWidget):
         else:
             reply = QMessageBox.question(
                 self, 'No existing settings found',
-                '<b>No existing settings file was found.</b>. Create settings file? This will create a file in your home directory to store prefrences between runs.',
+                '<b>No existing settings file was found.</b>. Create settings file? This will create a file in your home directory to store preferences between runs.',
                 QMessageBox.Yes | QMessageBox.No, QMessageBox.No
             )
             if reply == QMessageBox.No:
@@ -160,6 +159,9 @@ class TimerApp(QWidget):
         tray_menu.addAction(self.auto_start_action)
         
         tray_menu.addSeparator()
+        restore_action = tray_menu.addAction("Restore")
+        restore_action.triggered.connect(self.restore_window)
+        tray_menu.addSeparator()
         exit_action = tray_menu.addAction("Exit")
         exit_action.triggered.connect(self.close)
         self.tray_icon.setContextMenu(tray_menu)
@@ -169,6 +171,17 @@ class TimerApp(QWidget):
 
     def get_script_dir_path(self, filename):
         return os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+
+    def closeEvent(self, event):
+        # Override closeEvent to minimize to tray
+        event.ignore()  # Ignore the close event
+        self.hide()  # Hide the window
+        self.tray_icon.showMessage("2omer", "The application is minimized to the tray.", QSystemTrayIcon.Information, 2000)
+
+    def restore_window(self):
+        self.show()  # Show the main window
+        self.raise_()  # Bring the window to the foreground
+        self.activateWindow()  # Make sure the window gets focus
 
     def control_timer(self):
         if self.is_timer_running:
@@ -276,7 +289,6 @@ class TimerApp(QWidget):
     def toggle_auto_start(self):
         self.auto_start = self.auto_start_action.isChecked()
         self.save_settings()
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
